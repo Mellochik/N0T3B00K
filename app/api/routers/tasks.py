@@ -1,17 +1,19 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, logger
+from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.setup import get_db
-from fastapi import HTTPException, status
 import api.schemas.tasks as schemas
 import api.repositories.tasks as repositories
+from api.core.security import get_current_user
 
 
 router = APIRouter(
     prefix="/tasks",
     tags=["tasks"],
+    dependencies=[Depends(get_current_user)]
 )
 
 

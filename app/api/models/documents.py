@@ -33,7 +33,7 @@ class SpaceUser(Base):
 
     id:       Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     space_id: Mapped[int] = mapped_column(Integer, ForeignKey('spaces.id', ondelete="CASCADE"), nullable=False)
-    user_id:  Mapped[int] = mapped_column(Integer, ForeignKey('users.users.id'), nullable=False)
+    user_id:  Mapped[int] = mapped_column(Integer, ForeignKey(User.id), nullable=False)
 
     def __str__(self):
         return f"SpaceUser(id={self.id}, space_id={self.space_id}, user_id={self.user_id})"
@@ -89,7 +89,7 @@ class Document(Base):
     id:         Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     space_id:   Mapped[int] = mapped_column(Integer, ForeignKey('spaces.id', ondelete="CASCADE"), nullable=False)
     parent_id:  Mapped[int] = mapped_column(Integer, ForeignKey('documents.id', ondelete="CASCADE"), nullable=True)
-    author_id:  Mapped[int] = mapped_column(Integer, ForeignKey('users.users.id'), nullable=False)
+    author_id:  Mapped[int] = mapped_column(Integer, ForeignKey(User.id), nullable=False)
     title:      Mapped[str] = mapped_column(String(50), nullable=False)
     content:    Mapped[str] = mapped_column(String(255), nullable=True)
     created_at: Mapped[datetime.date] = mapped_column(Date, default=datetime.date.today)

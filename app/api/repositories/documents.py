@@ -9,13 +9,7 @@ async def create_space(
     space: schemas.SpaceCreate,
     db: AsyncSession 
 ) -> schemas.SpaceRead:
-    """
-    Создание пространства.
-    
-    Аргументы:
-        space (SpaceCreate): Модель для создания пространства.
-        db (AsyncSession): Сессия базы данных.
-    """
+    """Создание пространства."""
     
     new_space = models.Space(name=space.name)
     db.add(new_space)
@@ -31,12 +25,7 @@ async def create_space(
 async def read_spaces(
     db: AsyncSession
 ) -> list[schemas.SpaceRead]:
-    """
-    Получение списка пространств.
-    
-    Аргументы:
-        db (AsyncSession): Сессия базы данных.
-    """
+    """Получение списка пространств."""
     
     spaces = await db.query(models.Space).all()
     
@@ -46,13 +35,7 @@ async def read_space(
     space_id: int,
     db: AsyncSession 
 ) -> schemas.SpaceRead:
-    """
-    Получение пространства.
-    
-    Аргументы:
-        space_id (int): Идентификатор пространства.
-        db (AsyncSession): Сессия базы данных.
-    """
+    """Получение пространства."""
     
     space = await db.query(models.Space).filter(models.Space.id == space_id).first()
     
@@ -62,13 +45,7 @@ async def update_space(
     space: schemas.SpaceUpdate,
     db: AsyncSession 
 ) -> schemas.SpaceRead:
-    """
-    Обновление пространства.
-    
-    Аргументы:
-        space (SpaceUpdate): Модель для обновления пространства.
-        db (AsyncSession): Сессия базы данных.
-    """
+    """Обновление пространства."""
     
     existing_space = await db.get(models.Space, space.id)
     existing_space.name = space.name

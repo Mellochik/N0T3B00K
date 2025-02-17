@@ -2,7 +2,6 @@
 import { ref, watch, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import HomeIcon from './icons/HomeIcon.vue';
-import SearchIcon from './icons/SearchIcon.vue';
 import AddIcon from './icons/AddIcon.vue';
 import TaskIcon from './icons/TaskIcon.vue';
 
@@ -60,7 +59,7 @@ function updateActiveLink(newPath) {
 
 <style scoped>
 nav {
-    margin: 10px;
+    margin: 10px 10px 0px 10px;
     padding: 10px;
     background-color: #1f1f1f;
     border-radius: 10px;

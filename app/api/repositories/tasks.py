@@ -10,13 +10,7 @@ async def create_space(
     space: schemas.SpaceCreate,
     db: AsyncSession 
 ) -> schemas.SpaceRead:
-    """
-    Создание пространства.
-    
-    Аргументы:
-        space (SpaceCreate): Модель для создания пространства.
-        db (AsyncSession): Сессия базы данных.
-    """
+    """Создание пространства."""
     
     new_space = models.Space(name=space.name)
     db.add(new_space)
@@ -34,12 +28,7 @@ async def create_space(
 async def read_spaces(
     db: AsyncSession
 ) -> list[schemas.SpaceRead]:
-    """
-    Получение списка пространств.
-    
-    Аргументы:
-        db (AsyncSession): Сессия базы данных.
-    """
+    """Получение списка пространств."""
     
     result = await db.execute(select(models.Space))
     spaces = result.scalars().all()
@@ -50,13 +39,7 @@ async def read_space(
     space_id: int,
     db: AsyncSession 
 ) -> schemas.SpaceRead:
-    """
-    Получение пространства.
-    
-    Аргументы:
-        space_id (int): Идентификатор пространства.
-        db (AsyncSession): Сессия базы данных.
-    """
+    """Получение пространства."""
     
     result = await db.execute(select(models.Space).filter_by(id=space_id))
     space = result.scalar_one_or_none()
@@ -67,13 +50,7 @@ async def update_space(
     space: schemas.SpaceUpdate,
     db: AsyncSession 
 ) -> schemas.SpaceRead:
-    """
-    Обновление пространства.
-    
-    Аргументы:
-        space (SpaceUpdate): Модель для обновления пространства.
-        db (AsyncSession): Сессия базы данных.
-    """
+    """Обновление пространства."""
     
     existing_space = await db.get(models.Space, space.id)
     existing_space.name = space.name
@@ -102,13 +79,7 @@ async def delete_space(
     space: schemas.SpaceDelete,
     db: AsyncSession 
 ) -> schemas.SpaceRead:
-    """
-    Удаление пространства.
-    
-    Аргументы:
-        space_id (int): Идентификатор пространства.
-        db (AsyncSession): Сессия базы данных.
-    """
+    """Удаление пространства."""
     
     space = await db.get(models.Space, space.id)
     db.delete(space)
@@ -122,13 +93,7 @@ async def create_column(
     column: schemas.ColumnCreate,
     db: AsyncSession 
 ) -> schemas.ColumnRead:
-    """
-    Создание колонки.
-    
-    Аргументы:
-        column (ColumnCreate): Модель для создания колонки.
-        db (AsyncSession): Сессия базы данных.
-    """
+    """Создание колонки."""
     
     new_column = models.Column(name=column.name, space_id=column.space_id)
     db.add(new_column)
@@ -141,12 +106,7 @@ async def create_column(
 async def read_columns(
     db: AsyncSession
 ) -> list[schemas.ColumnRead]:
-    """
-    Получение списка колонок.
-    
-    Аргументы:
-        db (AsyncSession): Сессия базы данных.
-    """
+    """Получение списка колонок."""
     
     result = await db.execute(select(models.Column))
     columns = result.scalars().all()
@@ -157,13 +117,7 @@ async def read_column(
     column_id: int,
     db: AsyncSession 
 ) -> schemas.ColumnRead:
-    """
-    Получение колонки.
-    
-    Аргументы:
-        column_id (int): Идентификатор колонки.
-        db (AsyncSession): Сессия базы данных.
-    """
+    """Получение колонки."""
     
     result = await db.execute(select(models.Column).filter_by(id=column_id))
     column = result.scalar_one_or_none()
@@ -174,13 +128,7 @@ async def update_column(
     column: schemas.ColumnUpdate,
     db: AsyncSession 
 ) -> schemas.ColumnRead:
-    """
-    Обновление колонки.
-    
-    Аргументы:
-        column (ColumnUpdate): Модель для обновления колонки.
-        db (AsyncSession): Сессия базы данных.
-    """
+    """Обновление колонки."""
     
     existing_column = await db.get(models.Column, column.id)
     existing_column.name = column.name
@@ -195,13 +143,7 @@ async def delete_column(
     column: schemas.ColumnDelete,
     db: AsyncSession 
 ) -> schemas.ColumnRead:
-    """
-    Удаление колонки.
-    
-    Аргументы:
-        column_id (int): Идентификатор колонки.
-        db (AsyncSession): Сессия базы данных.
-    """
+    """Удаление колонки."""
     
     column = await db.get(models.Column, column.id)
     db.delete(column)
@@ -215,13 +157,7 @@ async def create_task(
     task: schemas.TaskCreate,
     db: AsyncSession 
 ) -> schemas.TaskRead:
-    """
-    Создание задачи.
-    
-    Аргументы:
-        task (TaskCreate): Модель для создания задачи.
-        db (AsyncSession): Сессия базы данных.
-    """
+    """Создание задачи."""
     
     new_task = models.Task(
         column_id=task.column_id,
@@ -245,12 +181,7 @@ async def create_task(
 async def read_tasks(
     db: AsyncSession
 ) -> list[schemas.TaskRead]:
-    """
-    Получение списка задач.
-    
-    Аргументы:
-        db (AsyncSession): Сессия базы данных.
-    """
+    """Получение списка задач."""
     
     result = await db.execute(select(models.Task))
     tasks = result.scalars().all()
@@ -261,13 +192,7 @@ async def read_task(
     task_id: int,
     db: AsyncSession 
 ) -> schemas.TaskRead:
-    """
-    Получение задачи.
-    
-    Аргументы:
-        task_id (int): Идентификатор задачи.
-        db (AsyncSession): Сессия базы данных.
-    """
+    """Получение задачи."""
     
     result = await db.execute(select(models.Task).filter_by(id=task_id))
     task = result.scalar_one_or_none()
@@ -278,13 +203,7 @@ async def update_task(
     task: schemas.TaskUpdate,
     db: AsyncSession 
 ) -> schemas.TaskRead:
-    """
-    Обновление задачи.
-    
-    Аргументы:
-        task (TaskUpdate): Модель для обновления задачи.
-        db (AsyncSession): Сессия базы данных.
-    """
+    """Обновление задачи."""
     
     existing_task = await db.get(models.Task, task.id)
     existing_task.column_id = task.column_id
@@ -316,13 +235,7 @@ async def delete_task(
     task: schemas.TaskDelete,
     db: AsyncSession 
 ) -> schemas.TaskRead:
-    """
-    Удаление задачи.
-    
-    Аргументы:
-        task_id (int): Идентификатор задачи.
-        db (AsyncSession): Сессия базы данных.
-    """
+    """Удаление задачи."""
     
     task = await db.get(models.Task, task.id)
     db.delete(task)
@@ -336,13 +249,7 @@ async def create_priority(
     priority: schemas.PriorityCreate,
     db: AsyncSession 
 ) -> schemas.PriorityRead:
-    """
-    Создание приоритета.
-    
-    Аргументы:
-        priority (PriorityCreate): Модель для создания приоритета.
-        db (AsyncSession): Сессия базы данных.
-    """
+    """Создание приоритета."""
     
     new_priority = models.Priority(name=priority.name)
     db.add(new_priority)
@@ -355,12 +262,7 @@ async def create_priority(
 async def read_priorities(
     db: AsyncSession
 ) -> list[schemas.PriorityRead]:
-    """
-    Получение списка приоритетов.
-    
-    Аргументы:
-        db (AsyncSession): Сессия базы данных.
-    """
+    """Получение списка приоритетов."""
     
     result = await db.execute(select(models.Priority))
     priorities = result.scalars().all()
@@ -371,13 +273,7 @@ async def read_priority(
     priority_id: int,
     db: AsyncSession 
 ) -> schemas.PriorityRead:
-    """
-    Получение приоритета.
-    
-    Аргументы:
-        priority_id (int): Идентификатор приоритета.
-        db (AsyncSession): Сессия базы данных.
-    """
+    """Получение приоритета."""
     
     result = await db.execute(select(models.Priority).filter_by(id=priority_id))
     priority = result.scalar_one_or_none()
@@ -389,13 +285,7 @@ async def create_status(
     status: schemas.StatusCreate,
     db: AsyncSession 
 ) -> schemas.StatusRead:
-    """
-    Создание статуса.
-    
-    Аргументы:
-        status (StatusCreate): Модель для создания статуса.
-        db (AsyncSession): Сессия базы данных.
-    """
+    """Создание статуса."""
     
     new_status = models.Status(name=status.name)
     db.add(new_status)
@@ -408,12 +298,7 @@ async def create_status(
 async def read_statuses(
     db: AsyncSession
 ) -> list[schemas.StatusRead]:
-    """
-    Получение списка статусов.
-    
-    Аргументы:
-        db (AsyncSession): Сессия базы данных.
-    """
+    """Получение списка статусов."""
     
     result = await db.execute(select(models.Status))
     statuses = result.scalars().all()
@@ -424,13 +309,7 @@ async def read_status(
     status_id: int,
     db: AsyncSession 
 ) -> schemas.StatusRead:
-    """
-    Получение статуса.
-    
-    Аргументы:
-        status_id (int): Идентификатор статуса.
-        db (AsyncSession): Сессия базы данных.
-    """
+    """Получение статуса."""
     
     result = await db.execute(select(models.Status).filter_by(id=status_id))
     status = result.scalar_one_or_none()
@@ -442,13 +321,7 @@ async def create_label(
     label: schemas.LabelCreate,
     db: AsyncSession 
 ) -> schemas.LabelRead:
-    """
-    Создание метки.
-    
-    Аргументы:
-        label (LabelCreate): Модель для создания метки.
-        db (AsyncSession): Сессия базы данных.
-    """
+    """Создание метки."""
     
     new_label = models.Label(name=label.name)
     db.add(new_label)
@@ -461,12 +334,7 @@ async def create_label(
 async def read_labels(
     db: AsyncSession
 ) -> list[schemas.LabelRead]:
-    """
-    Получение списка меток.
-    
-    Аргументы:
-        db (AsyncSession): Сессия базы данных.
-    """
+    """Получение списка меток."""
     
     result = await db.execute(select(models.Label))
     labels = result.scalars().all()
@@ -477,13 +345,7 @@ async def read_label(
     label_id: int,
     db: AsyncSession 
 ) -> schemas.LabelRead:
-    """
-    Получение метки.
-    
-    Аргументы:
-        label_id (int): Идентификатор метки.
-        db (AsyncSession): Сессия базы данных.
-    """
+    """Получение метки."""
     
     result = await db.execute(select(models.Label).filter_by(id=label_id))
     label = result.scalar_one_or_none()
@@ -494,13 +356,7 @@ async def update_label(
     label: schemas.LabelUpdate,
     db: AsyncSession 
 ) -> schemas.LabelRead:
-    """
-    Обновление метки.
-    
-    Аргументы:
-        label (LabelUpdate): Модель для обновления метки.
-        db (AsyncSession): Сессия базы данных.
-    """
+    """Обновление метки."""
     
     existing_label = await db.get(models.Label, label.id)
     existing_label.name = label.name
@@ -514,13 +370,7 @@ async def delete_label(
     label: schemas.LabelDelete,
     db: AsyncSession 
 ) -> schemas.LabelRead:
-    """
-    Удаление метки.
-    
-    Аргументы:
-        label (LabelDelete): Идентификатор метки.
-        db (AsyncSession): Сессия базы данных.
-    """
+    """Удаление метки."""
     
     label = await db.get(models.Label, label.id)
     db.delete(label)

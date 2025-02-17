@@ -33,7 +33,7 @@ class SpaceUser(Base):
 
     id:       Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     space_id: Mapped[int] = mapped_column(Integer, ForeignKey('spaces.id', ondelete='CASCADE'), nullable=False)
-    user_id:  Mapped[int] = mapped_column(Integer, ForeignKey('users.users.id'), nullable=False)
+    user_id:  Mapped[int] = mapped_column(Integer, ForeignKey(User.id), nullable=False)
 
     def __str__(self):
         return f"SpaceUser(id={self.id}, space_id={self.space_id}, user_id={self.user_id})"
@@ -150,14 +150,14 @@ class Task(Base):
     
 
     id:          Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    column_id:   Mapped[int] = mapped_column(Integer, ForeignKey("columns.id", ondelete="CASCADE"), nullable=False)
-    author_id:   Mapped[int] = mapped_column(Integer, ForeignKey("users.users.id"), nullable=False)
+    column_id:   Mapped[int] = mapped_column(Integer, ForeignKey('columns.id', ondelete="CASCADE"), nullable=False)
+    author_id:   Mapped[int] = mapped_column(Integer, ForeignKey(User.id), nullable=False)
     title:       Mapped[str] = mapped_column(String(20), nullable=False)
     description: Mapped[str] = mapped_column(String, nullable=True)
     create_date: Mapped[datetime.date] = mapped_column(Date, nullable=False, default=datetime.date.today)
     date_end:    Mapped[datetime.date] = mapped_column(Date, nullable=True)
-    status_id:   Mapped[int] = mapped_column(Integer, ForeignKey("statuses.id"), nullable=False)
-    priority_id: Mapped[int] = mapped_column(Integer, ForeignKey("priorities.id"), nullable=False)
+    status_id:   Mapped[int] = mapped_column(Integer, ForeignKey('statuses.id'), nullable=False)
+    priority_id: Mapped[int] = mapped_column(Integer, ForeignKey('priorities.id'), nullable=False)
 
     column = relationship("Column", back_populates="tasks")
     status = relationship("Status", back_populates="tasks")

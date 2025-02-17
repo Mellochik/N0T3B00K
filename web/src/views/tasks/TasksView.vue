@@ -5,11 +5,14 @@ import TasksColumn from '@/components/tasks/TasksColumn.vue';
 
 <template>
     <div class="page">
+        <div class="spaces">
+
+        </div>
         <h1>
             <TaskIcon :size="40" />
             Задачи
         </h1>
-        <div class="content">
+        <div class="tasks">
             <div>
                 <TasksColumn :title="'Не выполнено'" :status="'Не выполнено'" />
             </div>
@@ -30,23 +33,17 @@ h1 {
 
 .page {
     display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.content {
-    display: flex;
     flex-direction: row;
     gap: 10px;
 }
 
-.content > div {
-  flex: 1 1 0px;
+.spaces {
+    flex: 1 1 0px;
 }
 
-@media (max-width: 1200px) {
-  .content {
-    flex-direction: column;
-  }
+.tasks {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
 }
 </style>
