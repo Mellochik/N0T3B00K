@@ -1,36 +1,17 @@
 <script setup>
-import TaskIcon from '@/components/icons/TaskIcon.vue';
-import TasksColumn from '@/components/tasks/TasksColumn.vue';
+    import TaskColumn from '@/components/tasks/TaskColumn.vue';
 </script>
 
 <template>
     <div class="page">
         <div class="spaces">
-
         </div>
-        <h1>
-            <TaskIcon :size="40" />
-            Задачи
-        </h1>
         <div class="tasks">
-            <div>
-                <TasksColumn :title="'Не выполнено'" :status="'Не выполнено'" />
-            </div>
-            <div>
-                <TasksColumn :title="'В работе'" :status="'В работе'" />
-            </div>
-            <div>
-                <TasksColumn :title="'Готово'" :status="'Готово'" />
-            </div>
         </div>
     </div>
 </template>
 
 <style scoped>
-h1 {
-    padding: 10px 10px;
-}
-
 .page {
     display: flex;
     flex-direction: row;
@@ -38,10 +19,18 @@ h1 {
 }
 
 .spaces {
-    flex: 1 1 0px;
+    min-width: 400px;
+    background-color: #1f1f1f;
+    border-radius: 20px;
+    flex: 1;
 }
 
 .tasks {
+    overflow-x: auto;
+    overflow-y: auto;
+    background-color: #1f1f1f;
+    border-radius: 20px;
+    flex: 3;
     display: flex;
     flex-direction: row;
     gap: 10px;

@@ -27,42 +27,38 @@ function updateActiveLink(newPath) {
 
 <template>
     <nav>
-        <div class="logo">N0T3B00K</div>
-        <div :class="{ links: isActiveLink === 'Home' }">
+        <div class="links">
+            <div class="logo">N0T3B00K</div>
             <RouterLink to="/" class="link">
                 <HomeIcon />
                 Домашняя
             </RouterLink>
-        </div>
-        <div :class="{ links: isActiveLink === 'Tasks' }">
             <RouterLink to="/tasks" class="link">
                 <TaskIcon />
                 Задачи
             </RouterLink>
-            <RouterLink v-if="isActiveLink === 'Tasks'" to="/task/create" class="link">
-                <AddIcon color="#8b8b8b" />
-                Создать
-            </RouterLink>
-        </div>
-        <div :class="{ links: isActiveLink === 'Tasks' }">
-            <RouterLink to="/tasks" class="link">
+            <RouterLink to="/documents" class="link">
                 <TaskIcon />
                 Документы
             </RouterLink>
-            <RouterLink v-if="isActiveLink === 'Tasks'" to="/task/create" class="link">
-                <AddIcon color="#8b8b8b" />
-                Создать
-            </RouterLink>
+        </div>
+        <div class="profile">
+            Профиль
         </div>
     </nav>
 </template>
 
 <style scoped>
 nav {
-    margin: 10px 10px 0px 10px;
+    margin: 10px calc(25% - 170px) 0px calc(25% - 170px); 
     padding: 10px;
     background-color: #1f1f1f;
-    border-radius: 10px;
+    border-radius: 20px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.links {
     display: flex;
     gap: 10px;
     align-items: center;
@@ -81,11 +77,6 @@ a {
     padding-right: 10px;
 }
 
-.links {
-    border-radius: 10px;
-    background-color: #2c2c2c;
-}
-
 .link {
     font-size: 16px;
     color: #8b8b8b;
@@ -97,7 +88,24 @@ a {
     align-items: center;
 }
 
+.router-link-active {
+    background-color: #2c2c2c;
+}
+
 .link:hover {
+    background-color: #373737;
+}
+
+.profile {
+    font-size: 16px;
+    color: #8b8b8b;
+    padding: 5px 10px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+}
+
+.profile:hover {
     background-color: #373737;
 }
 </style>

@@ -36,7 +36,6 @@ body {
     font-style: normal;
     background-color: var(--body-bg-color);
     display: flex;
-    flex-direction: column;
     height: 100vh;
 }
 
@@ -46,4 +45,8 @@ body {
     flex-direction: column;
     overflow: hidden;
     gap: 10px;
+}
+
+#app > * {
+    min-width: 600px;
 }

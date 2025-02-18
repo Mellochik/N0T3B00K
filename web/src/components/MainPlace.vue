@@ -6,9 +6,13 @@
 
 <style scoped>
 main {
-    overflow-y: auto;
-    margin: 0px 10px 10px 10px; 
+    margin: 0px calc(25% - 170px) 10px calc(25% - 170px); 
     height: calc(100vh - 20px);
     max-height: 100vh;
+    min-width: 600px;
+}
+
+main > * {
+    height: 100%;
 }
 </style>
