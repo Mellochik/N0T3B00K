@@ -1,52 +1,83 @@
-from typing import Annotated
+from fastapi import APIRouter, Depends, Response
+from fastapi.responses import JSONResponse
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from api.repositories.users import create_user
-from api.setup import get_db
-from api.schemas.users import UserCreate, UserRead
-from api.schemas.token import Token
 from api.core.security import create_access_token, get_current_user, \
                               authenticate_user
+from api.errors.exceptions import BadRequestException, UnauthorizedException
+from api.repositories import UsersDAO
+from api.schemas import UserSignIn, UserSignUp, User, Token
+from api.utils.hash import get_password_hash
 
 
 router = APIRouter(
     prefix="/auth",
-    tags=["auth"]
+    tags=["Auth"]
 )
 
-@router.post("/signup", response_model=UserRead)
-async def signup(user: UserCreate, db: AsyncSession = Depends(get_db)):
+# Роуты для работы с аутентификацией пользователя
+@router.post(
+    "/register", 
+    summary="Регистрация пользователя",
+    response_class=JSONResponse,
+    responses={
+        400: {"description": "Имя пользователя уже существует"},
+        422: {"description": "Ошибка валидации запроса"}
+    }
+)
+async def sign_up_user(new_user: UserSignUp) -> JSONResponse:
     """Регистрация пользователя."""
     
-    db_user = await create_user(db, user)
+    existing_user = await UsersDAO.find_one_or_none(login=new_user.login)
+    if existing_user:
+        raise BadRequestException(detail="Пользователь уже существует")
     
-    return db_user
+    user_dict = new_user.model_dump()
+    user_dict['password'] = get_password_hash(new_user.password)
+    
+    await UsersDAO.add(**user_dict)
+    
+    return JSONResponse(content={"message": "Пользователь успешно зарегистрирован"})
 
-@router.post("/token", response_model=Token)
-async def login_for_access_token(
-    form_data: Annotated[OAuth2PasswordRequestForm, Depends()], 
-    db: AsyncSession = Depends(get_db)
-) -> Token:
+@router.post(
+    "/login", 
+    summary="Авторизация пользователя",
+    response_model=Token,
+    responses={
+        401: {"description": "Неверный логин и пароль"},
+        422: {"description": "Ошибка валидации запроса"},
+    }
+)
+async def sign_in_user(response: Response, user: UserSignIn) -> Token:
     """Авторизация пользователя."""
     
-    user = await authenticate_user(db, form_data.username, form_data.password)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    access_token = create_access_token(data={"sub": user.login})
+    existing_user = await authenticate_user(user.login, user.password)
+    if existing_user is False:
+        raise UnauthorizedException(detail="Неверный логин или пароль")
+    access_token = create_access_token(data={"sub": str(existing_user.login)})
     
-    return Token(access_token=access_token, token_type="bearer")
+    response.set_cookie(
+        key="access_token", 
+        value=access_token
+    )
+    
+    return Token(access_token=access_token, token_type="jwt")
 
-@router.get("/me", response_model=UserRead)
-async def read_users_me(
-    current_user: Annotated[UserRead, Depends(get_current_user)]
-) -> UserRead:
-    """Получение данных пользователя."""
-    
-    return current_user
+@router.post(
+    "/logout", 
+    summary="Выход пользователя из системы",
+    response_class=JSONResponse
+)
+async def logout_user(response: Response):
+    response.delete_cookie(key="access_token")
+    return JSONResponse(content={'message': 'Пользователь успешно вышел из системы'})
+
+@router.get(
+    "/me",
+    summary="Получение информации о текущем пользователе",
+    response_model=User,
+    responses={
+        401: {"description": "Не авторизованный пользователь"}
+    }
+)
+async def get_me(user_data: User = Depends(get_current_user)):
+    return user_data

@@ -1,380 +1,121 @@
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select as sql_select, update as sql_update, delete as sql_delete
+from sqlalchemy.exc import SQLAlchemyError
 
-import api.schemas.tasks as schemas
-import api.models.tasks as models
+from api.core.dao import BaseDAO
+from api.core.database import async_session_maker
+from api.models import User, Space, SpaceUsers
 
 
-# Space
-async def create_space(
-    space: schemas.SpaceCreate,
-    db: AsyncSession 
-) -> schemas.SpaceRead:
-    """Создание пространства."""
+class SpacesDAO(BaseDAO):
+    model = Space
     
-    new_space = models.Space(name=space.name)
-    db.add(new_space)
-    for user_id in space.users_id:
-        result = await db.execute(select(models.User).filter_by(id=user_id))
-        user = result.scalar_one_or_none()
-        if user:
-            new_space.users.append(user)
+    @classmethod
+    async def add(cls, users_id: list[int] = [], **values) -> object:
+        """
+        Добавление нового пространства.
+        """
         
-    await db.commit()
-    await db.refresh(new_space)
-    
-    return new_space
-
-async def read_spaces(
-    db: AsyncSession
-) -> list[schemas.SpaceRead]:
-    """Получение списка пространств."""
-    
-    result = await db.execute(select(models.Space))
-    spaces = result.scalars().all()
-    
-    return spaces
-
-async def read_space(
-    space_id: int,
-    db: AsyncSession 
-) -> schemas.SpaceRead:
-    """Получение пространства."""
-    
-    result = await db.execute(select(models.Space).filter_by(id=space_id))
-    space = result.scalar_one_or_none()
-    
-    return space
-
-async def update_space(
-    space: schemas.SpaceUpdate,
-    db: AsyncSession 
-) -> schemas.SpaceRead:
-    """Обновление пространства."""
-    
-    existing_space = await db.get(models.Space, space.id)
-    existing_space.name = space.name
-    
-    existing_user_ids = {user.id for user in existing_space.users}
-    new_user_ids = set(space.users_id)
-    
-    for user_id in new_user_ids - existing_user_ids:
-        result = await db.execute(select(models.User).filter_by(id=user_id))
-        user = result.scalar_one_or_none()
-        if user:
-            existing_space.users.append(user)
-    
-    for user_id in existing_user_ids - new_user_ids:
-        result = await db.execute(select(models.User).filter_by(id=user_id))
-        user = result.scalar_one_or_none()
-        if user:
-            existing_space.users.remove(user)
-    
-    await db.commit()
-    await db.refresh(existing_space)
-    
-    return existing_space
-
-async def delete_space(
-    space: schemas.SpaceDelete,
-    db: AsyncSession 
-) -> schemas.SpaceRead:
-    """Удаление пространства."""
-    
-    space = await db.get(models.Space, space.id)
-    db.delete(space)
-    
-    await db.commit()
-    
-    return space
-
-# Column
-async def create_column(
-    column: schemas.ColumnCreate,
-    db: AsyncSession 
-) -> schemas.ColumnRead:
-    """Создание колонки."""
-    
-    new_column = models.Column(name=column.name, space_id=column.space_id)
-    db.add(new_column)
-    
-    await db.commit()
-    await db.refresh(new_column)
-    
-    return new_column
-
-async def read_columns(
-    db: AsyncSession
-) -> list[schemas.ColumnRead]:
-    """Получение списка колонок."""
-    
-    result = await db.execute(select(models.Column))
-    columns = result.scalars().all()
-    
-    return columns
-
-async def read_column(
-    column_id: int,
-    db: AsyncSession 
-) -> schemas.ColumnRead:
-    """Получение колонки."""
-    
-    result = await db.execute(select(models.Column).filter_by(id=column_id))
-    column = result.scalar_one_or_none()
-    
-    return column
-
-async def update_column(
-    column: schemas.ColumnUpdate,
-    db: AsyncSession 
-) -> schemas.ColumnRead:
-    """Обновление колонки."""
-    
-    existing_column = await db.get(models.Column, column.id)
-    existing_column.name = column.name
-    existing_column.space_id = column.space_id
-    
-    await db.commit()
-    await db.refresh(existing_column)
-    
-    return existing_column
-
-async def delete_column(
-    column: schemas.ColumnDelete,
-    db: AsyncSession 
-) -> schemas.ColumnRead:
-    """Удаление колонки."""
-    
-    column = await db.get(models.Column, column.id)
-    db.delete(column)
-    
-    await db.commit()
-    
-    return column
-
-# Task
-async def create_task(
-    task: schemas.TaskCreate,
-    db: AsyncSession 
-) -> schemas.TaskRead:
-    """Создание задачи."""
-    
-    new_task = models.Task(
-        column_id=task.column_id,
-        author_id=task.author_id,
-        title=task.title,
-        description=task.description,
-        create_date=task.create_date,
-        date_end=task.date_end,
-        status_id=task.status_id,
-        priority_id=task.priority_id
-    )
-    db.add(new_task)
-    for label_id in task.labels_id:
-        db.add(models.TaskLabel(label_id=label_id, task_id=new_task.id))
-    
-    await db.commit()
-    await db.refresh(new_task)
-    
-    return new_task
-
-async def read_tasks(
-    db: AsyncSession
-) -> list[schemas.TaskRead]:
-    """Получение списка задач."""
-    
-    result = await db.execute(select(models.Task))
-    tasks = result.scalars().all()
-    
-    return tasks
-
-async def read_task(
-    task_id: int,
-    db: AsyncSession 
-) -> schemas.TaskRead:
-    """Получение задачи."""
-    
-    result = await db.execute(select(models.Task).filter_by(id=task_id))
-    task = result.scalar_one_or_none()
-    
-    return task
-
-async def update_task(
-    task: schemas.TaskUpdate,
-    db: AsyncSession 
-) -> schemas.TaskRead:
-    """Обновление задачи."""
-    
-    existing_task = await db.get(models.Task, task.id)
-    existing_task.column_id = task.column_id
-    existing_task.title = task.title
-    existing_task.description = task.description
-    existing_task.date_end = task.date_end
-    existing_task.status_id = task.status_id
-    existing_task.priority_id = task.priority_id
-    
-    result = await db.execute(select(models.TaskLabel).filter_by(task_id=task.id))
-    existing_label_ids = {label.label_id for label in result.scalars().all()}
-    new_label_ids = set(task.labels_id)
-    
-    for label_id in new_label_ids - existing_label_ids:
-        db.add(models.TaskLabel(label_id=label_id, task_id=task.id))
-    
-    for label_id in existing_label_ids - new_label_ids:
-        result = await db.execute(select(models.TaskLabel).filter_by(task_id=task.id, label_id=label_id))
-        label = result.scalar_one_or_none()
-        if label:
-            db.delete(label)
-    
-    await db.commit()
-    await db.refresh(existing_task)
-    
-    return existing_task
-
-async def delete_task(
-    task: schemas.TaskDelete,
-    db: AsyncSession 
-) -> schemas.TaskRead:
-    """Удаление задачи."""
-    
-    task = await db.get(models.Task, task.id)
-    db.delete(task)
-    
-    await db.commit()
-    
-    return task
-
-# Priority
-async def create_priority(
-    priority: schemas.PriorityCreate,
-    db: AsyncSession 
-) -> schemas.PriorityRead:
-    """Создание приоритета."""
-    
-    new_priority = models.Priority(name=priority.name)
-    db.add(new_priority)
-    
-    await db.commit()
-    await db.refresh(new_priority)
-    
-    return new_priority
-
-async def read_priorities(
-    db: AsyncSession
-) -> list[schemas.PriorityRead]:
-    """Получение списка приоритетов."""
-    
-    result = await db.execute(select(models.Priority))
-    priorities = result.scalars().all()
-    
-    return priorities
-
-async def read_priority(
-    priority_id: int,
-    db: AsyncSession 
-) -> schemas.PriorityRead:
-    """Получение приоритета."""
-    
-    result = await db.execute(select(models.Priority).filter_by(id=priority_id))
-    priority = result.scalar_one_or_none()
-    
-    return priority
-
-# Status
-async def create_status(
-    status: schemas.StatusCreate,
-    db: AsyncSession 
-) -> schemas.StatusRead:
-    """Создание статуса."""
-    
-    new_status = models.Status(name=status.name)
-    db.add(new_status)
-    
-    await db.commit()
-    await db.refresh(new_status)
-    
-    return new_status
-
-async def read_statuses(
-    db: AsyncSession
-) -> list[schemas.StatusRead]:
-    """Получение списка статусов."""
-    
-    result = await db.execute(select(models.Status))
-    statuses = result.scalars().all()
-    
-    return statuses
-
-async def read_status(
-    status_id: int,
-    db: AsyncSession 
-) -> schemas.StatusRead:
-    """Получение статуса."""
-    
-    result = await db.execute(select(models.Status).filter_by(id=status_id))
-    status = result.scalar_one_or_none()
-    
-    return status
-
-# Label
-async def create_label(
-    label: schemas.LabelCreate,
-    db: AsyncSession 
-) -> schemas.LabelRead:
-    """Создание метки."""
-    
-    new_label = models.Label(name=label.name)
-    db.add(new_label)
-    
-    await db.commit()
-    await db.refresh(new_label)
-    
-    return new_label
-
-async def read_labels(
-    db: AsyncSession
-) -> list[schemas.LabelRead]:
-    """Получение списка меток."""
-    
-    result = await db.execute(select(models.Label))
-    labels = result.scalars().all()
-    
-    return labels
-
-async def read_label(
-    label_id: int,
-    db: AsyncSession 
-) -> schemas.LabelRead:
-    """Получение метки."""
-    
-    result = await db.execute(select(models.Label).filter_by(id=label_id))
-    label = result.scalar_one_or_none()
-    
-    return label
-
-async def update_label(
-    label: schemas.LabelUpdate,
-    db: AsyncSession 
-) -> schemas.LabelRead:
-    """Обновление метки."""
-    
-    existing_label = await db.get(models.Label, label.id)
-    existing_label.name = label.name
-    
-    await db.commit()
-    await db.refresh(existing_label)
-    
-    return existing_label
-
-async def delete_label(
-    label: schemas.LabelDelete,
-    db: AsyncSession 
-) -> schemas.LabelRead:
-    """Удаление метки."""
-    
-    label = await db.get(models.Label, label.id)
-    db.delete(label)
-    
-    await db.commit()
-    
-    return label
+        async with async_session_maker() as session:
+            space: Space = cls.model(**values)
+            session.add(space)
+            
+            for user_id in users_id:
+                query = sql_select(User).where(User.id == user_id)
+                result = await session.execute(query)
+                user: User = result.scalar_one_or_none()
+                if user:
+                    space_users = SpaceUsers(user_id=user_id, space_id=space.id)
+                    session.add(space_users)
+            try:
+                await session.commit()
+            except SQLAlchemyError as e:
+                await session.rollback()
+                raise e
+            
+            await session.refresh(space)
+            return space
+        
+    @classmethod
+    async def update(cls, users_id: list[int], where: dict, **values) -> object:
+        """
+        Обновление записи в базе данных.
+        """
+        
+        if where is None:
+            raise ValueError("Укажите параметры для фильтрации записи.")
+        
+        async with async_session_maker() as session:
+            query = (
+                sql_update(cls.model)
+                .where(*[getattr(cls.model, k) == v for k, v in where.items()])
+                .values(**values)
+                .execution_options(synchronize_session="fetch")
+            )
+            await session.execute(query)
+            
+            space_query = sql_select(cls.model).where(*[getattr(cls.model, k) == v for k, v in where.items()])
+            space_result = await session.execute(space_query)
+            space = space_result.scalar_one_or_none()
+            
+            if space:
+                current_users_query = sql_select(SpaceUsers).where(SpaceUsers.space_id == space.id)
+                current_users_result = await session.execute(current_users_query)
+                current_users = {su.user_id for su in current_users_result.scalars().all()}
+                
+                users_to_remove = current_users - set(users_id)
+                for user_id in users_to_remove:
+                    delete_query = sql_delete(SpaceUsers).where(SpaceUsers.space_id == space.id, SpaceUsers.user_id == user_id)
+                    await session.execute(delete_query)
+                
+                users_to_add = set(users_id) - current_users
+                for user_id in users_to_add:
+                    space_user = SpaceUsers(user_id=user_id, space_id=space.id)
+                    session.add(space_user)
+            
+            try:
+                await session.commit()
+            except SQLAlchemyError as e:
+                await session.rollback()
+                raise e
+            
+            return space
+        
+    @classmethod
+    async def find_one_or_none(cls, user_id: int | None = None, **filter_by) -> object:
+        """
+        Поиск всех записей по фильтру.
+        """
+        
+        async with async_session_maker() as session:
+            if user_id is not None:
+                query = sql_select(cls.model). \
+                    join(SpaceUsers, cls.model.id == SpaceUsers.space_id, isouter=True). \
+                    where((cls.model.owner_id == user_id) | (SpaceUsers.user_id == user_id)). \
+                    order_by(cls.model.id). \
+                    filter_by(**filter_by)
+            else:
+                query = sql_select(cls.model).order_by(cls.model.id).filter_by(**filter_by)
+                
+            result = await session.execute(query)
+            
+            return result.scalar_one_or_none()  
+        
+    @classmethod
+    async def find_all(cls, user_id: int | None = None, **filter_by) -> list[Space]:
+        """
+        Получение всех пространств пользователя.
+        """
+        
+        async with async_session_maker() as session:
+            if user_id is not None:
+                query = sql_select(cls.model). \
+                    join(SpaceUsers, cls.model.id == SpaceUsers.space_id, isouter=True). \
+                    where((cls.model.owner_id == user_id) | (SpaceUsers.user_id == user_id)). \
+                    order_by(cls.model.id). \
+                    filter_by(**filter_by)
+            else:
+                query = sql_select(cls.model).order_by(cls.model.id).filter_by(**filter_by)
+                
+            result = await session.execute(query)
+            
+            return result.scalars().all()
