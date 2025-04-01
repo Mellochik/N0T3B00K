@@ -1,41 +1,42 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 import datetime
 
 
-class UserCreate(BaseModel):
+class UserSignUp(BaseModel):
     """
     Представляет схему создания пользователя.
     
     Атрибуты:
+        login (str): Логин пользователя.
+        password (str): Пароль пользователя.
+        email (EmailStr): Email пользователя.
+        name (str): Имя пользователя.
+        surname (str): Фамилия пользователя.
         created_at (date): Дата создания пользователя, по умолчанию - сегодня.
-        is_superuser (bool): Флаг суперпользователя, по умолчанию - False.
-        is_active (bool): Флаг активности пользователя, по умолчанию - True.
+        is_active (bool): Флаг активного пользователя, по умолчанию - False.
     """
     
     login: str
     password: str
-    email: str
-    name: str
-    surname: str
+    email: EmailStr
+    first_name: str
+    last_name: str
     created_at: datetime.date = datetime.date.today()
-    is_superuser: bool = False
     is_active: bool = True
     
-    
-class UserRead(BaseModel):
+
+class UserSignIn(BaseModel):
     """
-    Представляет схему чтения пользователя.
+    Представляет схему входа пользователя.
     
     Атрибуты:
-        id (int): Первичный ключ пользователя, автоинкремент.
+        login (str): Логин пользователя.
+        password (str): Пароль пользователя.
     """
     
-    id: int
     login: str
-    email: str
-    name: str
-    surname: str
+    password: str
     
     
 class User(BaseModel):
@@ -46,35 +47,9 @@ class User(BaseModel):
         id (int): Первичный ключ пользователя, автоинкремент.
     """
     
-    id: int
-    name: str
-    surname: str
-    
-    
-class UserAuth(BaseModel):
-    """
-    Представляет схему аутентификации пользователя.
-    """
-    
     login: str
-    password: str
-    
-
-class UserUpdate(BaseModel):
-    """
-    Представляет схему обновления пользователя.
-    """
-    
-    id: int
-    password: str
     email: str
-    name: str
-    surname: str
-
-
-class UserDelete(BaseModel):
-    """
-    Представляет схему удаления пользователя.
-    """
+    first_name: str
+    last_name: str
     
-    id: int
+    model_config = ConfigDict(from_attributes=True)

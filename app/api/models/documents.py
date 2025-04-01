@@ -1,20 +1,16 @@
-from sqlalchemy import Integer, String, Date, ForeignKey, MetaData
+import datetime
+
+from sqlalchemy import Integer, String, Date, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import MetaData
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.ext.asyncio import AsyncAttrs
-from sqlalchemy.sql import text
 
 from api.models.users import User
-
-import datetime
 
 
 class Base(AsyncAttrs, DeclarativeBase):
     metadata = MetaData(schema="docs")
-
-    @classmethod
-    async def create_schema(cls, conn):
-        await conn.execute(text(f"CREATE SCHEMA IF NOT EXISTS {cls.metadata.schema}"))
 
 
 class SpaceUser(Base):
