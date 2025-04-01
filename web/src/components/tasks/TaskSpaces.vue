@@ -1,19 +1,27 @@
 <template>
-    <div class="spaces">
-        <div>
-            <TasksColumn :title="'Не выполнено'" :status="'Не выполнено'" />
-        </div>
-        <div>
-            <TasksColumn :title="'В работе'" :status="'В работе'" />
-        </div>
-        <div>
-            <TasksColumn :title="'Готово'" :status="'Готово'" />
-        </div>
+    <div class="space">
+        Test
+    </div>
+    <div class="space">
+        Test
+    </div>
+    <div class="space">
+        Test
+    </div>
+    <div class="space">
+        Test
     </div>
 </template>
 
 <style scoped>
-.spaces {
-    background-color: #f0f0f0;
+.space {
+    padding: 10px;
+    background-color: #2c2c2c;
+    border-radius: 10px;
+    color: #8b8b8b;
+}
+
+.space:hover {
+    background-color: #373737;
 }
 </style>

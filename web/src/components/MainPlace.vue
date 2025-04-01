@@ -6,7 +6,7 @@
 
 <style scoped>
 main {
-    margin: 0px calc(25% - 170px) 10px calc(25% - 170px); 
+    margin: 0px 10px 10px 10px; 
     height: calc(100vh - 20px);
     max-height: 100vh;
     min-width: 600px;

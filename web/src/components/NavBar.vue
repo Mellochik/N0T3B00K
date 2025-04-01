@@ -50,7 +50,7 @@ function updateActiveLink(newPath) {
 
 <style scoped>
 nav {
-    margin: 10px calc(25% - 170px) 0px calc(25% - 170px); 
+    margin: 10px 10px 0px 10px; 
     padding: 10px;
     background-color: #1f1f1f;
     border-radius: 20px;
