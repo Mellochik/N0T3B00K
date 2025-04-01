@@ -60,18 +60,18 @@ class Space(Base):
     owner:  Mapped[User] = relationship(
         User, 
         uselist=False,
-        lazy='joined'
+        lazy='selectin'
     )
     users:  Mapped[list[User]] = relationship(
         User, 
         secondary=SpaceUsers.__table__,
-        lazy='joined'
+        lazy='selectin'
     )
     stacks: Mapped[list["Stack"]] = relationship(
         "Stack", 
         back_populates="space", 
         cascade="all, delete-orphan", 
-        lazy='joined'
+        lazy='selectin'
     )
     
     __table_args__ = {
@@ -103,9 +103,14 @@ class Stack(Base):
     space_id: Mapped[int] = mapped_column(ForeignKey(Space.id, ondelete="CASCADE"), 
                                           nullable=False)
     
-    space = relationship("Space", back_populates="stacks")
-    tasks = relationship("Task", back_populates="stack", cascade="all, delete-orphan", 
-                         lazy='selectin', sync_backref=False)
+    space: Mapped["Space"] = relationship("Space", back_populates="stacks", lazy='selectin')
+    tasks: Mapped[list["Task"]] = relationship(
+        "Task", 
+        back_populates="stack", 
+        cascade="all, delete-orphan", 
+        lazy='selectin', 
+        sync_backref=False
+    )
     
     __table_args__ = {
         'schema': 'tasks',
@@ -133,7 +138,7 @@ class Status(Base):
     id:   Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(10), nullable=False, unique=True)
 
-    tasks = relationship("Task", back_populates="status", lazy='selectin')
+    tasks: Mapped[list["Task"]] = relationship("Task", back_populates="status", lazy='selectin')
     
     __table_args__ = {
         'schema': 'tasks',
@@ -161,7 +166,7 @@ class Priority(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(10), nullable=False, unique=True)
 
-    tasks = relationship("Task", back_populates="priority", lazy='selectin')
+    tasks: Mapped[list["Task"]] = relationship("Task", back_populates="priority", lazy='selectin')
     
     __table_args__ = {
         'schema': 'tasks',
@@ -181,7 +186,7 @@ class TaskLabels(Base):
     
     Атрибуты:
         id (int): Первичный ключ аcсоциации.
-        space_id (int): Внешний ключ, ссылающийся на пространство.
+        task_id (int): Внешний ключ, ссылающийся на пространство.
         user_id (int): Внешний ключ, ссылающийся на пользователя.
     """
     
@@ -219,8 +224,12 @@ class Label(Base):
     id:   Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
 
-    tasks = relationship("Task", secondary=TaskLabels.__table__, 
-                         back_populates="labels", lazy='selectin')
+    tasks: Mapped[list["Task"]] = relationship(
+        "Task", 
+        secondary=TaskLabels.__table__, 
+        back_populates="labels", 
+        lazy='selectin'
+    )
     
     __table_args__ = {
         'schema': 'tasks',
@@ -264,9 +273,10 @@ class Task(Base):
     status_id:   Mapped[int] = mapped_column(ForeignKey(Status.id), nullable=False)
     priority_id: Mapped[int] = mapped_column(ForeignKey(Priority.id), nullable=False)
 
-    stack = relationship("Stack", back_populates="tasks")
-    status = relationship("Status", back_populates="tasks")
-    priority = relationship("Priority", back_populates="tasks")
+    stack = relationship("Stack", back_populates="tasks", lazy='selectin')
+    author = relationship(User, lazy='selectin')
+    status = relationship("Status", back_populates="tasks", lazy='selectin')
+    priority = relationship("Priority", back_populates="tasks", lazy='selectin')
     labels = relationship("Label", secondary=TaskLabels.__table__, 
                           back_populates="tasks", lazy='selectin')
     
@@ -276,9 +286,9 @@ class Task(Base):
     }
     
     def __str__(self):
-        return (f"Task(id={self.id}, column_id={self.column_id}, author_id={self.author_id}, title={self.title},"
+        return (f"Task(id={self.id}, stack_id={self.stack_id}, author_id={self.author_id}, title={self.title}, "
                 f"create_date={self.create_date}, date_end={self.date_end}, status_id={self.status_id}, priority_id={self.priority_id})")
     
     def __repr__(self):
-        return (f"<Task(id={self.id}, column_id={self.column_id}, author_id={self.author_id}, title={self.title}," 
+        return (f"<Task(id={self.id}, stack_id={self.stack_id}, author_id={self.author_id}, title={self.title}, " 
                 f"create_date={self.create_date}, date_end={self.date_end}, status_id={self.status_id}, priority_id={self.priority_id})>")

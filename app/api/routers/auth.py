@@ -3,14 +3,13 @@ from fastapi.responses import JSONResponse
 
 from api.core.security import create_access_token, get_current_user, \
                               authenticate_user
-from api.errors.exceptions import BadRequestException, UnauthorizedException
-from api.repositories import UsersDAO
+from api.core.exceptions import BadRequestException, UnauthorizedException
+from api.repositories.users import UserDAO
 from api.schemas import UserSignIn, UserSignUp, User, Token
 from api.utils.hash import get_password_hash
 
 
 router = APIRouter(
-    prefix="/auth",
     tags=["Auth"]
 )
 
@@ -19,22 +18,18 @@ router = APIRouter(
     "/register", 
     summary="Регистрация пользователя",
     response_class=JSONResponse,
-    responses={
-        400: {"description": "Имя пользователя уже существует"},
-        422: {"description": "Ошибка валидации запроса"}
-    }
 )
 async def sign_up_user(new_user: UserSignUp) -> JSONResponse:
     """Регистрация пользователя."""
     
-    existing_user = await UsersDAO.find_one_or_none(login=new_user.login)
+    existing_user = await UserDAO.find_one_or_none(login=new_user.login)
     if existing_user:
         raise BadRequestException(detail="Пользователь уже существует")
     
     user_dict = new_user.model_dump()
     user_dict['password'] = get_password_hash(new_user.password)
     
-    await UsersDAO.add(**user_dict)
+    await UserDAO.add(**user_dict)
     
     return JSONResponse(content={"message": "Пользователь успешно зарегистрирован"})
 
@@ -42,10 +37,6 @@ async def sign_up_user(new_user: UserSignUp) -> JSONResponse:
     "/login", 
     summary="Авторизация пользователя",
     response_model=Token,
-    responses={
-        401: {"description": "Неверный логин и пароль"},
-        422: {"description": "Ошибка валидации запроса"},
-    }
 )
 async def sign_in_user(response: Response, user: UserSignIn) -> Token:
     """Авторизация пользователя."""

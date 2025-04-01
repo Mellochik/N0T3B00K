@@ -4,5 +4,5 @@ from api.core.dao import BaseDAO
 from api.models.users import User
 
 
-class UsersDAO(BaseDAO):
+class UserDAO(BaseDAO):
     model = User

@@ -1,6 +1,7 @@
 from sqlalchemy import select as sql_select, update as sql_update, delete as sql_delete
 from sqlalchemy.exc import SQLAlchemyError
 from api.core.database import async_session_maker
+from api.core.logging import logger
 
 
 class BaseDAO:
@@ -11,6 +12,7 @@ class BaseDAO:
     model = None
     
     @classmethod
+    @logger.log_dao_method
     async def add(cls, **values) -> object:
         """
         Добавление новой записи в базу данных.
@@ -28,6 +30,7 @@ class BaseDAO:
             return new_instance
         
     @classmethod
+    @logger.log_dao_method
     async def update(cls, where: dict, **values) -> object:
         """
         Обновление записи в базе данных.
@@ -43,16 +46,20 @@ class BaseDAO:
                 .values(**values)
                 .execution_options(synchronize_session="fetch")
             )
+            await session.execute(query)
+            
+            query = sql_select(cls.model).where(*[getattr(cls.model, k) == v for k, v in where.items()])
             result = await session.execute(query)
             try:
                 await session.commit()
             except SQLAlchemyError as e:
                 await session.rollback()
                 raise e
-            return result.rowcount
+            return result.scalar_one_or_none()
         
     @classmethod
-    async def delete(cls, **filter_by):
+    @logger.log_dao_method
+    async def delete(cls, **filter_by) -> int:
         """
         Удаление записи из базы данных.
         """
@@ -71,6 +78,7 @@ class BaseDAO:
             return result.rowcount
         
     @classmethod
+    @logger.log_dao_method
     async def find_one_or_none(cls, **filter_by) -> object:
         """
         Поиск одной записи по идентификатору.
@@ -82,6 +90,7 @@ class BaseDAO:
             return result.scalar_one_or_none()
     
     @classmethod
+    @logger.log_dao_method
     async def find_all(cls, **filter_by) -> object:
         """
         Поиск всех записей по фильтру.

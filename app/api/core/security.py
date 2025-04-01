@@ -7,9 +7,9 @@ from jose import jwt, JWTError, ExpiredSignatureError
 from passlib.context import CryptContext
 
 from api.core.config import get_auth_data
-from api.errors.exceptions import UnauthorizedException
+from api.core.exceptions import UnauthorizedException
 from api.models.users import User
-from api.repositories.users import UsersDAO
+from api.repositories.users import UserDAO
 from api.utils.hash import verify_password
 
 
@@ -49,7 +49,7 @@ async def authenticate_user(login: str, password: str) -> User | None:
     Проверка пользователя.
     """
     
-    user = await UsersDAO.find_one_or_none(login=login)
+    user = await UserDAO.find_one_or_none(login=login)
     if not user or not verify_password(password, user.password):
         return False
     
@@ -66,7 +66,7 @@ async def get_current_user(token: str = Depends(cookie_scheme)) -> User:
     if not login:
         raise UnauthorizedException(detail='Не найден login пользователя')
 
-    user = await UsersDAO.find_one_or_none(login=login)
+    user = await UserDAO.find_one_or_none(login=login)
     if not user:
         raise UnauthorizedException(detail='Пользователь не найден')
 
