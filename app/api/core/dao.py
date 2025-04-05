@@ -23,10 +23,11 @@ class BaseDAO:
             session.add(new_instance)
             try:
                 await session.commit()
+                await session.refresh(new_instance)
             except SQLAlchemyError as e:
                 await session.rollback()
+                raise e
             
-            await session.refresh(new_instance)
             return new_instance
         
     @classmethod

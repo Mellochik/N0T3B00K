@@ -31,7 +31,6 @@ class SpaceCreate(SpaceBase):
     
 class Space(SpaceBase):  
     id: int
-    owner: User
     users: list[User]
     
     model_config = ConfigDict(from_attributes=True)
@@ -84,7 +83,7 @@ class Stack(StackBase):
     """
     
     id: int
-    space: "SpaceBase"
+    tasks: list["TaskCard"]
     
     model_config = ConfigDict(from_attributes=True)
         
@@ -114,6 +113,24 @@ class StackDelete(BaseModel):
     
 
 # Task
+class TaskCard(BaseModel):
+    """
+    Модель для карточки задачи.
+    
+    Атрибуты:
+        id (int): Идентификатор задачи.
+        title (str): Заголовок задачи.
+        date_end (datetime.date | None): Дата завершения задачи.
+    """
+    
+    id: int
+    title: str
+    date_end: datetime.date | None
+    status: "Status"
+    priority: "Priority"
+    labels: list["Label"]
+
+
 class TaskBase(BaseModel):
     """
     Базовая модель для задачи.

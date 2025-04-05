@@ -26,19 +26,7 @@ function parseDate(date) {
 }
 
 onMounted(async () => {
-    try {
-        const response = await fetch(`http://127.0.0.1:8000/tasks/show/${props.id}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        })
-
-        var data = await response.json();
-        task.value = data;
-    } catch (error) {
-        alert('Задача не существует!!!');
-    }
+    
 })
 </script>
 

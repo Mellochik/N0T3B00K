@@ -1,7 +1,8 @@
 from datetime import datetime, timedelta, timezone
+from typing import Annotated
 
 from fastapi import Depends, Request
-from fastapi.security import APIKeyCookie
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
 from jose import jwt, JWTError, ExpiredSignatureError
 from passlib.context import CryptContext
@@ -14,7 +15,7 @@ from api.utils.hash import verify_password
 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-cookie_scheme = APIKeyCookie(name="access_token", auto_error=True)
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 def create_access_token(data: dict) -> str:
     """
@@ -55,7 +56,7 @@ async def authenticate_user(login: str, password: str) -> User | None:
     
     return user
     
-async def get_current_user(token: str = Depends(cookie_scheme)) -> User:
+async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]) -> User:
     """
     Получение авторизированного пользователя по токену.
     """
@@ -74,7 +75,7 @@ async def get_current_user(token: str = Depends(cookie_scheme)) -> User:
 
 async def get_current_superuser(user: User = Depends(get_current_user)) -> User:
     """
-    Получение авторизированного пользователя по токену.
+    Получение авторизированного суперпользователя.
     """
     
     if not user.is_superuser:

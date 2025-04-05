@@ -1,52 +1,54 @@
 :root {
-    --scrollbar-width: 10px;
-    --scrollbar-height: 10px;
-    --scrollbar-bg-color: #2c2c2c;
-    --scrollbar-thumb-color: #4c4c4c;
-    --scrollbar-thumb-hover-color: #3c3c3c;
-    --body-bg-color: #171717;
-    --font-family: "Ubuntu", sans-serif;
-}
+    /* Основные цвета */
+    --header-backgorund-color: #24272F;
+    --background-color: #2A2E35;
+    --accent-background-color: #34373F;
+    --border-color: #464651;
+    --text-color: #eeeeee;
 
-::-webkit-scrollbar {
-    width: var(--scrollbar-width);
-    height: var(--scrollbar-height);
-    background-color: var(--scrollbar-bg-color);
-    border-radius: 10px;
-}
+    /* Акцентные цвета */
+    --primary-color: #268B63;
+    --secondary-color: #871895;
 
-::-webkit-scrollbar-thumb {
-    background-color: var(--scrollbar-thumb-color);
-    border-radius: 10px;
-}
+    /* Информирующие цвета*/
+    --success-color: #28a745;
+    --warning-color: #ffc107;
+    --error-color: #dc3545;
+    --info-color: #17a2b8;
 
-::-webkit-scrollbar-thumb:hover {
-    background-color: var(--scrollbar-thumb-hover-color);
-}
+    /* Радиус границ */
+    --border-radius-sm: 0.25em;
+    --border-radius-md: 0.5em;
+    --border-radius-lg: 1em;
 
-::-webkit-scrollbar-track {
-    background-color: var(--scrollbar-bg-color);
-    border-radius: 10px;
+    /* Шрифты */
+    --font-family: "Inter", sans-serif;
+    --font-weight: 400;
+
+    /* Размеры шрифта */
+    --font-size-md: 16px;
+    --font-size-lg: 20px;
+    --font-size-xl: 24px;
 }
 
 body {
     margin: 0;
     padding: 0;
+    color: var(--text-color);
     font-family: var(--font-family);
+    font-size: var(--font-size-lg);
+    font-optical-sizing: auto;
+    font-weight: var(--font-weight);
     font-style: normal;
-    background-color: var(--body-bg-color);
-    display: flex;
-    height: 100vh;
+    background-color: var(--header-backgorund-color);
 }
 
 #app {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    gap: 10px;
-}
-
-#app > * {
-    min-width: 600px;
+    height: 100vh; 
+    display: grid;
+    grid-template-areas:
+        "h h"
+        "n m";
+    grid-template-columns: 87.5px 1fr;
+    grid-template-rows: 50px 1fr;
 }
