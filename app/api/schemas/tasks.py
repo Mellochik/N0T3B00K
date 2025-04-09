@@ -1,340 +1,353 @@
-from pydantic import BaseModel, ConfigDict
-from pydantic import Field
-
 import datetime
+from typing import Optional
 
-from api.schemas.users import User
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
-# Space
-class SpaceBase(BaseModel):
+# Board
+class BoardCreate(BaseModel):
     """
-    Базовая модель для пространства.
-    
-    Атрибуты:
-        name (str): Название пространства.
-    """
-    
-    name: str
-    
+    Схема создания доски.
 
-class SpaceCreate(SpaceBase):
-    """
-    Модель для создания пространства.
-    
-    Атрибуты:
-        users_id (list[int]): Список идентификаторов пользователей, которые будут добавлены в пространство.
+    ```json
+    {
+        "name": "str",    # Название доски
+        "owner_id": "int" # Идентификатор владельца
+    }
+    ```
     """
     
-    users_id: list[int]
+    name: str = Field(..., title="Название доски", min_length=1, max_length=100)
+    owner_id: int = Field(..., title="Идентификатор владельца", ge=1)
+
+
+class BoardRead(BaseModel):
+    """
+    Схема чтения доски.
+
+    ```json
+    {
+        "id": "int",  # Идентификатор доски
+        "name": "str" # Название доски
+    }
+    ```
+    """
     
-    
-class Space(SpaceBase):  
-    id: int
-    users: list[User]
-    
+    id: int = Field(..., title="Идентификатор доски", ge=1)
+    name: str = Field(..., title="Название доски", max_length=100)
+
     model_config = ConfigDict(from_attributes=True)
-        
 
-class SpaceUpdate(SpaceBase):
+
+class BoardUpdate(BaseModel):
     """
-    Модель для обновления пространства.
-    
-    Атрибуты:
-        id (int): Идентификатор пространства.
-        users_id (list[int]): Список идентификаторов пользователей, которые будут добавлены в пространство.
+    Схема обновления доски.
+
+    ```json
+    {
+        "id": "int",  # Идентификатор доски
+        "name": "str" # Название доски
+    }
+    ```
     """
     
-    id: int
-    users_id: list[int]
+    id: int = Field(..., title="Идентификатор доски", ge=1)
+    name: str = Field(..., title="Название доски", min_length=1, max_length=100)
 
 
 # Stack
-class StackBase(BaseModel):
+class StackCreate(BaseModel):
     """
-    Базовая модель для стопки.
-    
-    Атрибуты:
-        name (str): Название стопки.
-    """
-    
-    name: str
-    
+    Схема создания стопки.
 
-class StackCreate(StackBase):
-    """
-    Модель для создания стопки.
-    
-    Атрибуты:
-        space_id (int): Идентификатор пространства, к которому будет привязана стопка.
-    """
-    
-    space_id: int
-    
-    
-class Stack(StackBase):
-    """
-    Модель для чтения стопки.
-    
-    Атрибуты:
-        id (int): Идентификатор стопки.
-        space (SpaceBase): Пространство, к которому привязана стопка.
-        tasks (list[TaskRead]): Список задач, привязанных к стопке.
+    ```json
+    {
+        "name": "str",    # Название стопки
+        "board_id": "int" # Идентификатор доски
+    }
+    ```
     """
     
-    id: int
-    tasks: list["TaskCard"]
-    
-    model_config = ConfigDict(from_attributes=True)
-        
-
-class StackUpdate(StackBase):
-    """
-    Модель для обновления стопки.
-    
-    Атрибуты:
-        id (int): Идентификатор стопки.
-        space_id (int): Идентификатор пространства, к которому будет привязана колонка.
-    """
-    
-    id: int
-    space_id: int
-    
-
-class StackDelete(BaseModel):
-    """
-    Модель для удаления стопки.
-    
-    Атрибуты:
-        id (int): Идентификатор стопки.
-    """
-    
-    id: int
-    
-
-# Task
-class TaskCard(BaseModel):
-    """
-    Модель для карточки задачи.
-    
-    Атрибуты:
-        id (int): Идентификатор задачи.
-        title (str): Заголовок задачи.
-        date_end (datetime.date | None): Дата завершения задачи.
-    """
-    
-    id: int
-    title: str
-    date_end: datetime.date | None
-    status: "Status"
-    priority: "Priority"
-    labels: list["Label"]
+    name: str = Field(..., title="Название стопки", max_length=50)
+    board_id: int = Field(..., title="Идентификатор доски", ge=1)
 
 
-class TaskBase(BaseModel):
+class StackRead(BaseModel):
     """
-    Базовая модель для задачи.
-    
-    Атрибуты:
-        title (str): Заголовок задачи.
-        description (str): Описание задачи.
-        date_end (datetime.date | None): Дата завершения задачи.
-    """
-    
-    title: str
-    description: str
-    date_end: datetime.date | None
+    Схема чтения стопки.
 
+    ```json
+    {
+        "id": "int",                           # Идентификатор стопки
+        "name": "str",                         # Название стопки
+        "tasks": [                             # Список задач
+            {
+                "id": "int",                   # Идентификатор задачи
+                "title": "str",                # Заголовок задачи
+                "date_end": "datetime | None", # Дата завершения
+                "priority": {                  # Приоритет задачи
+                    "id": "int",               # Идентификатор приоритета
+                    "name": "str"              # Название приоритета
+                },
+                "tags": [                      # Список меток
+                    {
+                        "id": "int",           # Идентификатор метки
+                        "name": "str"          # Название метки
+                    }
+                ],
+                "has_solution": "bool"         # Наличие решения
+            }
+        ]
+    }
+    ```
+    """
+    
+    id: int = Field(..., title="Идентификатор стопки", ge=1)
+    name: str = Field(..., title="Название стопки", max_length=50)
+    tasks: list["TaskCardRead"] = Field(..., title="Список задач")
 
-class TaskCreate(TaskBase):
-    """
-    Модель для создания задачи.
-    
-    Атрибуты:
-        stack_id (int): Идентификатор колонки, к которой будет привязана задача.
-        author_id (int): Идентификатор автора задачи.
-        priority_id (int): Идентификатор приоритета задачи.
-        status_id (int): Идентификатор статуса задачи.
-        labels_id (list[int]): Список идентификаторов меток задачи.
-    """
-    
-    stack_id: int
-    author_id: int
-    create_date: datetime.date = datetime.date.today()
-    priority_id: int
-    status_id: int
-    labels_id: list[int]
-    
-
-class Task(TaskBase):
-    """
-    Модель для чтения задачи.
-    
-    Атрибуты:
-        id (int): Идентификатор задачи.
-        column (StackBase): Колонка, к которой привязана задача.
-        author (UserRead): Автор задачи.
-        status (Status): Статус задачи.
-        priority (Priority): Приоритет задачи.
-        labels (list[Label]): Список меток задачи.
-    """
-    
-    id: int
-    stack: StackBase
-    author: User
-    status: "Status"
-    priority: "Priority"
-    labels: list["Label"]
-    
     model_config = ConfigDict(from_attributes=True)
 
 
-class TaskUpdate(TaskBase):
+class StackUpdate(BaseModel):
     """
-    Модель для обновления задачи.
-    
-    Атрибуты:
-        id (int): Идентификатор задачи.
-        stack_id (int): Идентификатор колонки, к которой будет привязана задача.
-        priority_id (int): Идентификатор приоритета задачи.
-        status_id (int): Идентификатор статуса задачи.
-        labels_id (list[int]): Список идентификаторов меток задачи.
-    """
-    
-    id: int
-    stack_id: int
-    priority_id: int
-    status_id: int
-    labels_id: list[int]
-    
-    
-class TaskDelete(BaseModel):
-    """
-    Модель для удаления задачи.
-    
-    Атрибуты:
-        id (int): Идентификатор задачи.
+    Схема обновления стопки.
+
+    ```json
+    {
+        "id": "int",      # Идентификатор стопки
+        "name": "str",    # Название стопки
+        "board_id": "int" # Идентификатор доски
+    }
+    ```
     """
     
-    id: int
-    
+    id: int = Field(..., title="Идентификатор стопки", ge=1)
+    name: str = Field(..., title="Название стопки", max_length=50)
+    board_id: int = Field(..., title="Идентификатор доски", ge=1)
+
 
 # Priority
-class PriorityBase(BaseModel):
+class PriorityRead(BaseModel):
     """
-    Базовая модель для приоритета.
-    
-    Атрибуты:
-        name (str): Название приоритета.
-    """
-    
-    name: str
+    Схема чтения приоритета.
 
-
-class PriorityCreate(PriorityBase):
-    """
-    Модель для создания приоритета.
-    """
-    
-    pass
-
-
-class Priority(PriorityBase):
-    """
-    Модель для чтения приоритета.
-    
-    Атрибуты:
-        id (int): Идентификатор приоритета.
+    ```json
+    {
+        "id": "int",  # Идентификатор приоритета
+        "name": "str" # Название приоритета
+    }
+    ```
     """
     
-    id: int
+    id: int = Field(..., title="Идентификатор приоритета", ge=1)
+    name: str = Field(..., title="Название приоритета", max_length=50)
 
     model_config = ConfigDict(from_attributes=True)
 
 
-# Status
-class StatusBase(BaseModel):
+# Tags
+class TagCreate(BaseModel):
     """
-    Базовая модель для статуса.
-    
-    Атрибуты:
-        name (str): Название статуса.
-    """
-    
-    name: str
+    Схема создания метки.
 
-
-class StatusCreate(StatusBase):
-    """
-    Модель для создания статуса.
+    ```json
+    {
+        "name": "str",    # Название метки
+        "board_id": "int" # Идентификатор доски
+    }
+    ```
     """
     
-    pass
+    name: str = Field(..., title="Название метки", min_length=1, max_length=50)
+    board_id: int = Field(..., title="Идентификатор доски", ge=1)
 
 
-class Status(StatusBase):
+class TagRead(BaseModel):
     """
-    Модель для чтения статуса.
-    
-    Атрибуты:
-        id (int): Идентификатор статуса.
-    """
-    
-    id: int
+    Схема чтения метки.
 
-    model_config = ConfigDict(from_attributes=True)
-
-
-# Labels
-class LabelBase(BaseModel):
+    ```json
+    {
+        "id": "int",  # Идентификатор метки
+        "name": "str" # Название метки
+    }
+    ```
     """
-    Базовая модель для метки.
-    
-    Атрибуты:
-        name (str): Название метки.
-    """
-    
-    name: str
-
-
-class LabelCreate(LabelBase):
-    """
-    Модель для создания метки.
-    """
-    
-    pass
-
-
-class Label(LabelBase):
-    """
-    Модель для чтения метки.
-    
-    Атрибуты:
-        id (int): Идентификатор метки.
-    """
-    
-    id: int
+    id: int = Field(..., title="Идентификатор метки", ge=1)
+    name: str = Field(..., title="Название метки", max_length=50)
 
     model_config = ConfigDict(from_attributes=True)
 
 
-class LabelUpdate(LabelBase):
+class TagUpdate(BaseModel):
     """
-    Модель для обновления метки.
-    
-    Атрибуты:
-        id (int): Идентификатор метки.
+    Схема обновления метки.
+
+    ```json
+    {
+        "id": "int",      # Идентификатор метки
+        "name": "str",    # Название 
+        "board_id": "int" # Идентификатор доски
+    }
+    ```
+    """
+    id: int = Field(..., title="Идентификатор метки", ge=1)
+    name: str = Field(..., title="Название метки", min_length=1, max_length=50)
+    board_id: int = Field(..., title="Идентификатор доски", ge=1)
+
+
+# Task
+class TaskCreate(BaseModel):
+    """
+    Схема создания задачи.
+
+    ```json
+    {
+        "stack_id": "int",             # Идентификатор стопки
+        "title": "str",                # Заголовок задачи
+        "create_date": "datetime",     # Дата создания
+        "date_end": "datetime | None", # Дата завершения
+        "priority_id": "int",          # Идентификатор приоритета
+        "tags_id": "list[int]"         # Список идентификаторов меток
+    }
+    ```
     """
     
-    id: int
-    
-    
-class LabelDelete(BaseModel):
+    stack_id: int = Field(..., title="Идентификатор стопки", ge=1)
+    title: str = Field(..., title="Заголовок задачи", min_length=1, max_length=200)
+    create_date: datetime.datetime = Field(default_factory=datetime.datetime.today, title="Дата создания")
+    date_end: Optional[datetime.datetime] = Field(None, title="Дата завершения")
+    priority_id: int = Field(..., title="Идентификатор приоритета", ge=1)
+    tags_id: list[int] = Field(..., title="Список идентификаторов меток")
+    description: Optional[str] = Field(None, title="Описание задачи", max_length=500)
+
+    @field_validator("date_end")
+    def validate_date_end(cls, value, values):
+        if value and value < values.get("create_date"):
+            raise ValueError("Дата завершения не может быть раньше даты создания.")
+        return value
+
+
+class TaskRead(BaseModel):
     """
-    Модель для удаления метки.
-    
-    Атрибуты:
-        id (int): Идентификатор метки.
+    Схема чтения задачи.
+
+    ```json
+    {
+        "id": "int",                   # Идентификатор задачи
+        "title": "str",                # Заголовок задачи
+        "create_date": "datetime",     # Дата создания
+        "date_end": "datetime | None", # Дата завершения
+        "priority": {                  # Приоритет задачи
+            "id": "int",               # Идентификатор приоритета
+            "name": "str"              # Название приоритета
+        },
+        "tags": [                      # Список меток
+            {
+                "id": "int",           # Идентификатор метки
+                "name": "str"          # Название метки
+            }
+        ],
+        "description": "str | None",   # Описание задачи
+        "solution": "str | None"       # Решение задачи
+    }
+    ```
     """
     
-    id: int
+    id: int = Field(..., title="Идентификатор задачи", ge=1)
+    title: str = Field(..., title="Заголовок задачи", max_length=200)
+    create_date: datetime.datetime = Field(..., title="Дата создания")
+    date_end: Optional[datetime.datetime] = Field(None, title="Дата завершения")
+    priority: "PriorityRead" = Field(..., title="Приоритет задачи")
+    tags: list["TagRead"] = Field(..., title="Список меток")
+    description: Optional[str] = Field(None, title="Описание задачи", max_length=500)
+    solution: Optional[str] = Field(None, title="Решение задачи", max_length=500)
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class TaskUpdate(BaseModel):
+    """
+    Схема обновления задачи.
+
+    ```json
+    {
+        "id": "int",                   # Идентификатор задачи
+        "stack_id": "int",             # Идентификатор стопки
+        "title": "str",                # Заголовок задачи
+        "date_end": "datetime | None", # Дата завершения
+        "priority_id": "int",          # Идентификатор приоритета
+        "tags_id": "list[int]",        # Список идентификаторов меток
+        "description": "str | None",   # Описание задачи
+        "solution": "str | None",      # Решение задачи
+        "archived": "bool"             # Архивный статус
+    }
+    ```
+    """
+    
+    id: int = Field(..., title="Идентификатор задачи", ge=1)
+    stack_id: int = Field(..., title="Идентификатор стопки", ge=1)
+    title: str = Field(..., title="Заголовок задачи", min_length=1, max_length=200)
+    date_end: Optional[datetime.datetime] = Field(None, title="Дата завершения")
+    priority_id: int = Field(..., title="Идентификатор приоритета", ge=1)
+    tags_id: list[int] = Field(..., title="Список идентификаторов меток")
+    description: Optional[str] = Field(None, title="Описание задачи", max_length=500)
+    solution: Optional[str] = Field(None, title="Решение задачи", max_length=500)
+    archived: bool = Field(default=False, title="Архивный статус")
+
+    @field_validator("date_end")
+    def validate_date_end(cls, value, values):
+        if value and value < values.get("create_date"):
+            raise ValueError("Дата завершения не может быть раньше даты создания.")
+        return value
+
+
+class TaskCardCreate(BaseModel):
+    """
+    Схема создания карточки задачи.
+
+    ```json
+    {
+        "stack_id": "int", # Идентификатор стопки
+        "title": "str"     # Заголовок задачи
+    }
+    ```
+    """
+    
+    stack_id: int = Field(..., title="Идентификатор стопки", ge=1)
+    title: str = Field(..., title="Заголовок задачи", min_length=1, max_length=200)
+
+
+class TaskCardRead(BaseModel):
+    """
+    Схема чтения карточки задачи.
+
+    ```json
+    {
+        "id": "int",                   # Идентификатор задачи
+        "title": "str",                # Заголовок задачи
+        "date_end": "datetime | None", # Дата завершения
+        "priority": {                  # Приоритет задачи
+            "id": "int",               # Идентификатор приоритета
+            "name": "str"              # Название приоритета
+        },
+        "tags": [                      # Список меток
+            {
+                "id": "int",           # Идентификатор метки
+                "name": "str"          # Название метки
+            }
+        ],
+        "has_solution": "bool"         # Наличие решения
+    }
+    ```
+    """
+    
+    id: int = Field(..., title="Идентификатор задачи", ge=1)
+    title: str = Field(..., title="Заголовок задачи", max_length=200)
+    date_end: datetime.date | None = Field(None, title="Дата завершения")
+    priority: "PriorityRead" = Field(..., title="Приоритет задачи")
+    tags: list["TagRead"] = Field(..., title="Список меток")
+    has_solution: bool = Field(..., title="Наличие решения")
+
+    model_config = ConfigDict(from_attributes=True)

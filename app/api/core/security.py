@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta, timezone
 from typing import Annotated
 
-from fastapi import Depends, Request
+from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
 from jose import jwt, JWTError, ExpiredSignatureError
@@ -34,6 +34,7 @@ def decode_access_token(token: str) -> dict:
     """
     Расшифровка токена.
     """
+    
     try:
         auth_data = get_auth_data()
         payload = jwt.decode(token, auth_data['secret_key'], algorithms=[auth_data['algorithm']])
@@ -45,12 +46,12 @@ def decode_access_token(token: str) -> dict:
         raise UnauthorizedException(detail="Ошибка токена")
 
     
-async def authenticate_user(login: str, password: str) -> User | None:
+async def authenticate_user(username: str, password: str) -> User | None:
     """
     Проверка пользователя.
     """
     
-    user = await UserDAO.find_one_or_none(login=login)
+    user = await UserDAO.find_one_or_none(username=username)
     if not user or not verify_password(password, user.password):
         return False
     
@@ -63,11 +64,11 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]) -> Use
     
     payload: dict = decode_access_token(token)
 
-    login: str = payload.get('sub')
-    if not login:
-        raise UnauthorizedException(detail='Не найден login пользователя')
+    username: str = payload.get('sub')
+    if not username:
+        raise UnauthorizedException(detail='Не найден username пользователя')
 
-    user = await UserDAO.find_one_or_none(login=login)
+    user = await UserDAO.find_one_or_none(username=username)
     if not user:
         raise UnauthorizedException(detail='Пользователь не найден')
 

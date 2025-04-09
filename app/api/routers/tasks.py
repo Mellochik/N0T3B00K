@@ -3,10 +3,9 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 
-from api.core.security import get_current_user
+from api.core.security import User, get_current_user
 from api.core.exceptions import NotFoundException, \
-                                  InternalServerErrorException
-from api.models.users import User
+                                InternalServerErrorException
 import api.repositories.tasks as repositories
 import api.schemas.tasks as schemas
 
@@ -16,121 +15,92 @@ router = APIRouter(
 )
 
 
-# Роуты для работы с пространствами
+# Роуты для работы с досками
 @router.post(
-    "/space",
-    summary="Создание пространства пользователем",
-    response_model=schemas.Space
+    "/boards",
+    summary="Создание доски",
+    response_model=schemas.BoardRead
 )
-async def create_space(
-    space: schemas.SpaceCreate,
+async def create_board(
+    board: schemas.BoardCreate,
     user: Annotated[User, Depends(get_current_user)]
-) -> schemas.Space:
-    """Создание пространства"""
+) -> schemas.BoardRead:
+    """Создание доски"""
     
     try:
-        new_space = await repositories.SpaceDAO.add(
-            users_id=space.users_id, 
-            name=space.name, 
+        new_board = await repositories.BoardDAO.add(
+            name=board.name, 
             owner_id=user.id
         )
         
-        return new_space
+        return new_board
     except Exception as e:
         raise InternalServerErrorException(
-            detail=f"Произошла ошибка при создании пространства"
+            detail=f"Произошла ошибка при создании доски"
         )
 
 @router.get(
-    "/spaces", 
-    summary="Получение списка пространств пользователя",
-    response_model=list[schemas.Space]
+    "/boards", 
+    summary="Получение списка досок пользователя",
+    response_model=list[schemas.BoardRead]
 )
-async def read_spaces_by_user(
+async def read_boards_by_user(
     user: Annotated[User, Depends(get_current_user)]
-) -> list[schemas.Space]:
-    """Получение списка пространств"""
+) -> list[schemas.BoardRead]:
+    """Получение списка досок"""
     
     try:
-        spaces = await repositories.SpaceDAO.find_all(user_id=user.id)
+        boards = await repositories.BoardDAO.find_all(owner_id=user.id)
         
-        return spaces
+        return boards
     except Exception as e:
         raise InternalServerErrorException(
-            detail=f"Произошла ошибка при получении пространств: {str(e)}"
-        )
-
-@router.get(
-    "/space",
-    summary="Получение пространства пользователя по ID",
-    response_model=schemas.Space
-)
-async def read_space_by_user_and_id(
-    space_id: int,
-    user: Annotated[User, Depends(get_current_user)]
-) -> schemas.Space:
-    """Получение пространства по ID"""
-    
-    try:
-        space = await repositories.SpaceDAO.find_one_or_none(id=space_id)
-        
-        if not space:
-            raise NotFoundException
-        
-        return space
-    except NotFoundException:
-        raise NotFoundException(
-            detail=f"Пространство с ID {space_id} не найдено"
-        ) 
-    except Exception as e:
-        raise InternalServerErrorException(
-            detail=f"Произошла ошибка при получении пространства с ID {space_id}: {str(e)}"
+            detail=f"Произошла ошибка при получении досок: {str(e)}"
         )
         
 @router.put(
-    "/space",
-    summary="Изменение пространства",
-    response_model=schemas.Space
+    "/boards",
+    summary="Изменение доски",
+    response_model=schemas.BoardRead
 )
-async def update_space(
-    space: schemas.SpaceUpdate,
+async def update_board(
+    board: schemas.BoardUpdate,
     user: Annotated[User, Depends(get_current_user)]
-) -> schemas.Space:
+) -> schemas.BoardRead:
     """Обновление пространства"""
     
     try:
-        existing_space = await repositories.SpaceDAO.update(
-            users_id=space.users_id, 
-            where={'id': space.id}, 
-            name=space.name
+        existing_board = await repositories.BoardDAO.update(
+            where={'id': board.id}, 
+            name=board.name
         )
         
-        if not existing_space:
+        if not existing_board:
             raise NotFoundException
         
-        return existing_space
+        return existing_board
     except NotFoundException:
         raise NotFoundException(
-            detail=f"Пространство с ID {space.id} не найдено"
+            detail=f"Пространство с ID {board.id} не найдено"
         )
     except Exception as e:
         raise InternalServerErrorException(
-            detail=f"Произошла ошибка при обновлении пространства с ID {space.id}: {str(e)}"
+            detail=f"Произошла ошибка при обновлении доски с ID {board.id}: {str(e)}"
         )
         
 @router.delete(
-    "/space",
-    summary="Удаление пространства",
+    "/boards",
+    summary="Удаление доски",
     response_class=JSONResponse
 )
-async def delete_space(
-    space_id: int,
+async def delete_board(
+    board_id: int,
     user: Annotated[User, Depends(get_current_user)]
-) -> schemas.Space:
+) -> JSONResponse:
     """Удаление пространства"""
     
     try:
-        count = await repositories.SpaceDAO.delete(id=space_id)
+        count = await repositories.BoardDAO.delete(id=board_id)
         
         if not count:
             raise NotFoundException
@@ -138,28 +108,28 @@ async def delete_space(
         return JSONResponse(content={"message": "Пространство успешно удалено"})
     except NotFoundException:
         raise NotFoundException(
-            detail=f"Пространство с ID {space_id} не найдено"
+            detail=f"Пространство с ID {board_id} не найдено"
         )
     except Exception as e:
         raise InternalServerErrorException(
-            detail=f"Произошла ошибка при удалении пространства с ID {space_id}: {str(e)}"
+            detail=f"Произошла ошибка при удалении доски с ID {board_id}: {str(e)}"
         )
 
 # Роуты для работы со стопками
 @router.post(
-    "/stack",
+    "/stacks",
     summary="Создание стопки",
-    response_model=schemas.Stack
+    response_model=schemas.StackRead
 )
 async def create_stack(
     stack: schemas.StackCreate,
     user: Annotated[User, Depends(get_current_user)]
-) -> schemas.Stack:
+) -> schemas.StackRead:
     """Создание стопки"""
     
     try:
         new_stack = await repositories.StackDAO.add(
-            space_id=stack.space_id, 
+            board_id=stack.board_id, 
             name=stack.name
         )
         
@@ -171,67 +141,40 @@ async def create_stack(
 
 @router.get(
     "/stacks",
-    summary="Получение списка стопок пространства",
-    response_model=list[schemas.Stack],
+    summary="Получение списка стопок задач по доске",
+    response_model=list[schemas.StackRead],
 )
-async def read_stacks_by_space_id(
-    space_id: int,
+async def read_stacks_by_board_id(
+    board_id: int,
     user: Annotated[User, Depends(get_current_user)]
-) -> list[schemas.Stack]:
-    """Получение списка колонок"""
+) -> list[schemas.StackRead]:
+    """Получение списка стопок"""
     
     try:
-        stacks = await repositories.StackDAO.find_all(space_id=space_id)
+        stacks = await repositories.StackDAO.find_all(board_id=board_id)
         
         return stacks
     except Exception as e:
         raise InternalServerErrorException(
-            detail=f"Произошла ошибка при получении колонок: {str(e)}"
-        )
-        
-@router.get(
-    "/stack",
-    summary="Получение стопки по ID",
-    response_model=schemas.Stack
-)
-async def read_stack_by_id(
-    stack_id: int,
-    user: Annotated[User, Depends(get_current_user)]
-) -> schemas.Stack:
-    """Получение колонки по ID"""
-    
-    try:
-        stack = await repositories.StackDAO.find_one_or_none(id=stack_id)
-        
-        if not stack:
-            raise NotFoundException
-        
-        return stack
-    except NotFoundException:
-        raise NotFoundException(
-            detail=f"Стопка с ID {stack_id} не найдена"
-        )
-    except Exception as e:
-        raise InternalServerErrorException(
-            detail=f"Произошла ошибка при получении стопки с ID {stack_id}: {str(e)}"
+            detail=f"Произошла ошибка при получении стопок: {str(e)}"
         )
         
 @router.put(
-    "/stack",
+    "/stacks",
     summary="Изменение стопки",
-    response_model=schemas.Stack
+    response_model=schemas.StackRead
 )
 async def update_stack(
     stack: schemas.StackUpdate,
     user: Annotated[User, Depends(get_current_user)]
-) -> schemas.Stack:
+) -> schemas.StackRead:
     """Обновление колонки"""
     
     try:
         existing_stack = await repositories.StackDAO.update(
             where={'id': stack.id}, 
             name=stack.name, 
-            space_id=stack.space_id
+            board_id=stack.board_id
         )
         
         if not existing_stack:
@@ -248,14 +191,14 @@ async def update_stack(
         )
         
 @router.delete(
-    "/stack",
+    "/stacks",
     summary="Удаление стопки",
     response_class=JSONResponse
 )
 async def delete_stack(
     stack_id: int,
     user: Annotated[User, Depends(get_current_user)]
-) -> schemas.Stack:
+) -> JSONResponse:
     """Удаление колонки"""
     
     try:
@@ -278,11 +221,11 @@ async def delete_stack(
 @router.get(
     "/priorities",
     summary="Получение списка приоритетов",
-    response_model=list[schemas.Priority]
+    response_model=list[schemas.PriorityRead]
 )
 async def read_priorities(
     user: Annotated[User, Depends(get_current_user)]
-) -> list[schemas.Priority]:
+) -> list[schemas.PriorityRead]:
     """Получение списка приоритетов"""
     
     try:
@@ -294,149 +237,91 @@ async def read_priorities(
             detail=f"Произошла ошибка при получении приоритетов: {str(e)}"
         )
 
-@router.post(
-    "/priority",
-    summary="Создание приоритета",
-    response_model=schemas.Priority
-)
-async def create_priority(
-    priority: schemas.PriorityCreate,
-    user: Annotated[User, Depends(get_current_user)]
-) -> schemas.Priority:
-    """Создание приоритета"""
-    
-    try:
-        new_priority = await repositories.PriorityDAO.add(name=priority.name)
-        
-        return new_priority
-    except Exception as e:
-        raise InternalServerErrorException(
-            detail=f"Произошла ошибка при создании приоритета: {str(e)}"
-        )
-        
-# Роуты для работы со статусами
-@router.get(
-    "/statuses",
-    summary="Получение списка статусов",
-    response_model=list[schemas.Status]
-)
-async def read_statuses(
-    user: Annotated[User, Depends(get_current_user)]
-) -> list[schemas.Status]:
-    """Получение списка статусов"""
-    
-    try:
-        statuses = await repositories.StatusDAO.find_all()
-        
-        return statuses
-    except Exception as e:
-        raise InternalServerErrorException(
-            detail=f"Произошла ошибка при получении статусов: {str(e)}"
-        )
-        
-@router.post(
-    "/status",
-    summary="Создание статуса",
-    response_model=schemas.Status
-)
-async def create_status(
-    status: schemas.StatusCreate,
-    user: Annotated[User, Depends(get_current_user)]
-) -> schemas.Status:
-    """Создание статуса"""
-        
-    try:
-        new_status = await repositories.StatusDAO.add(name=status.name)
-        
-        return new_status
-    except Exception as e:
-        raise InternalServerErrorException(
-            detail=f"Произошла ошибка при создании статуса: {str(e)}"
-        )
-
 # Роуты для работы с метками
-@router.get(
-    "/labels",
-    summary="Получение списка меток",
-    response_model=list[schemas.Label]
+@router.post(
+    "/tags",
+    summary="Создание метки",
+    response_model=schemas.TagRead
 )
-async def read_labels(
+async def create_tag(
+    tag: schemas.TagCreate,
     user: Annotated[User, Depends(get_current_user)]
-) -> list[schemas.Label]:
+) -> schemas.TagRead:
+    """Создание метки"""
+    
+    try:
+        new_tag = await repositories.TagDAO.add(name=tag.name)
+        
+        return new_tag
+    except Exception as e:
+        raise InternalServerErrorException(
+            detail=f"Произошла ошибка при создании метки: {str(e)}"
+        )
+        
+@router.get(
+    "/tags",
+    summary="Получение списка меток доски",
+    response_model=list[schemas.TagRead]
+)
+async def read_tags_by_board_id(
+    board_id: int,
+    user: Annotated[User, Depends(get_current_user)]
+) -> list[schemas.TagRead]:
     """Получение списка меток"""
         
     try:
-        labels = await repositories.LabelDAO.find_all()
+        tags = await repositories.TagDAO.find_all()
         
-        return labels
+        return tags
     except Exception as e:
         raise InternalServerErrorException(
             detail=f"Произошла ошибка при получении меток: {str(e)}"
         )
 
-@router.post(
-    "/label",
-    summary="Создание метки",
-    response_model=schemas.Label
-)
-async def create_label(
-    label: schemas.LabelCreate,
-    user: Annotated[User, Depends(get_current_user)]
-) -> schemas.Label:
-    """Создание метки"""
-    
-    try:
-        new_label = await repositories.LabelDAO.add(name=label.name)
-        
-        return new_label
-    except Exception as e:
-        raise InternalServerErrorException(
-            detail=f"Произошла ошибка при создании метки: {str(e)}"
-        )
-
 @router.put(
-    "/label",
+    "/tags",
     summary="Изменение метки",
-    response_model=schemas.Label
+    response_model=schemas.TagRead
 )
-async def update_label(
-    label: schemas.LabelUpdate,
+async def update_tag(
+    tag: schemas.TagUpdate,
     user: Annotated[User, Depends(get_current_user)]
-) -> schemas.Label:
+) -> schemas.TagRead:
     """Обновление метки"""
     
     try:
-        existing_label = await repositories.LabelDAO.update(
-            where={'id': label.id}, 
-            name=label.name
+        existing_tag = await repositories.TagDAO.update(
+            where={'id': tag.id}, 
+            name=tag.name,
+            board_id=tag.board_id
         )
         
-        if not existing_label:
+        if not existing_tag:
             raise NotFoundException
         
-        return existing_label
+        return existing_tag
     except NotFoundException:
         raise NotFoundException(
-            detail=f"Метка с ID {label.id} не найдена"
+            detail=f"Метка с ID {tag.id} не найдена"
         )
     except Exception as e:
         raise InternalServerErrorException(
-            detail=f"Произошла ошибка при обновлении метки с ID {label.id}: {str(e)}"
+            detail=f"Произошла ошибка при обновлении метки с ID {tag.id}: {str(e)}"
         )
 
 @router.delete(
-    "/label",
+    "/tags",
     summary="Удаление метки",
     response_class=JSONResponse
 )
-async def delete_label(
-    label_id: int,
+async def delete_tag(
+    tag_id: int,
     user: Annotated[User, Depends(get_current_user)]
-) -> schemas.Label:
+) -> JSONResponse:
     """Удаление метки"""
     
     try:
-        count = await repositories.LabelDAO.delete(id=label_id)
+        count = await repositories.TagDAO.delete(id=tag_id)
         
         if not count:
             raise NotFoundException
@@ -444,35 +329,33 @@ async def delete_label(
         return JSONResponse(content={"message": "Метка успешно удалена"})
     except NotFoundException:
         raise NotFoundException(
-            detail=f"Метка с ID {label_id} не найдена"
+            detail=f"Метка с ID {tag_id} не найдена"
         )
     except Exception as e:
         raise InternalServerErrorException(
-            detail=f"Произошла ошибка при удалении метки с ID {label_id}: {str(e)}"
+            detail=f"Произошла ошибка при удалении метки с ID {tag_id}: {str(e)}"
         ) 
  
 # Роуты для работы с задачами
 @router.post(
-    "/task",
-    response_model=schemas.Task
+    "/tasks",
+    summary="Создание задачи",
+    response_model=schemas.TaskRead
 )
 async def create_task(
     task: schemas.TaskCreate,
     user: Annotated[User, Depends(get_current_user)]
-) -> schemas.Task:
+) -> schemas.TaskRead:
     """Создание задачи"""
     
     try:
         task = await repositories.TaskDAO.add(
-            labels_id=task.labels_id,
+            tags_id=task.tags_id,
             stack_id=task.stack_id, 
-            author_id=user.id,
             title=task.title,
-            description=task.description,
-            create_date=task.create_date,
-            date_end=task.date_end,
             priority_id=task.priority_id,
-            status_id=task.status_id
+            create_date=task.create_date,
+            date_end=task.date_end
         )
         
         return task
@@ -483,33 +366,13 @@ async def create_task(
         
 @router.get(
     "/tasks",
-    summary="Получение списка задач по стопке",
-    response_model=list[schemas.Task],
-)
-async def read_tasks(
-    stack_id: int,
-    user: Annotated[User, Depends(get_current_user)]
-) -> list[schemas.Task]:
-    """Получение списка задач"""
-    
-    try:
-        tasks = await repositories.TaskDAO.find_all(stack_id=stack_id)
-        
-        return tasks
-    except Exception as e:
-        raise InternalServerErrorException(
-            detail=f"Произошла ошибка при получении задач: {str(e)}"
-        )
-        
-@router.get(
-    "/task",
     summary="Получение задачи по ID",
-    response_model=schemas.Task
+    response_model=schemas.TaskRead
 )
-async def read_task(
+async def read_task_by_id(
     task_id: int,
     user: Annotated[User, Depends(get_current_user)],
-) -> schemas.Task:
+) -> schemas.TaskRead:
     """Получение задачи по ID"""
     
     try:
@@ -527,27 +390,28 @@ async def read_task(
         )
         
 @router.put(
-    "/task",
+    "/tasks",
     summary="Изменение задачи",
-    response_model=schemas.Task
+    response_model=schemas.TaskRead
 )
 async def update_task(
     task: schemas.TaskUpdate,
     user: Annotated[User, Depends(get_current_user)]
-) -> schemas.Task:
+) -> schemas.TaskRead:
     """Обновление задачи"""
         
     try:
         existing_task = await repositories.TaskDAO.update(
-            labels_id=task.labels_id,
+            tags_id=task.tags_id,
             where={'id': task.id}, 
             title=task.title,
-            description=task.description,
             stack_id=task.stack_id,
             create_date=task.create_date,
             date_end=task.date_end,
             priority_id=task.priority_id,
-            status_id=task.status_id
+            description=task.description,
+            solution=task.solution,
+            archived=task.archived
         )
         
         if not existing_task:
@@ -564,17 +428,18 @@ async def update_task(
         )
         
 @router.delete(
-    "/task",
-    response_model=schemas.Task
+    "/tasks",
+    summary="Удаление задачи",
+    response_model=schemas.TaskRead
 )
 async def delete_task(
-    task: schemas.TaskDelete,
+    task_id: int,
     user: Annotated[User, Depends(get_current_user)]
-) -> schemas.Task:
+) -> schemas.TaskRead:
     """Удаление задачи"""
     
     try:
-        count = await repositories.TaskDAO.delete(id=task.id)
+        count = await repositories.TaskDAO.delete(id=task_id)
         
         if not count:
             raise NotFoundException
@@ -582,9 +447,32 @@ async def delete_task(
         return JSONResponse(content={"message": "Задача успешно удалена"})
     except NotFoundException:
         raise NotFoundException(
-            detail=f"Задача с ID {task.id} не найдена"
+            detail=f"Задача с ID {task_id} не найдена"
         )
     except Exception as e:
         raise InternalServerErrorException(
-            detail=f"Произошла ошибка при удалении задачи с ID {task.id}: {str(e)}"
+            detail=f"Произошла ошибка при удалении задачи с ID {task_id}: {str(e)}"
+        )
+
+@router.post(
+    "/task_cards",
+    summary="Создание карточки задачи",
+    response_model=schemas.TaskCardRead
+)
+async def create_task_card(
+    task_card: schemas.TaskCardCreate,
+    user: Annotated[User, Depends(get_current_user)]
+) -> schemas.TaskCardRead:
+    """Создание карточки задачи"""
+    
+    try:
+        task = await repositories.TaskDAO.add(
+            stack_id=task_card.stack_id,
+            title=task_card.title
+        )
+        
+        return task
+    except Exception as e:
+        raise InternalServerErrorException(
+            detail=f"Произошла ошибка при создании задачи: {str(e)}"
         )

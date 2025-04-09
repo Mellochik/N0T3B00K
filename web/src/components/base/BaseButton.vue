@@ -5,14 +5,6 @@ defineProps({
     type: {
         type: String,
         default: 'button'
-    },
-    backgroundColor: {
-        type: String,
-        default: ''
-    },
-    hoverBackgroundColor: {
-        type: String,
-        default: 'var(--accent-background-color)'
     }
 });
 
@@ -35,7 +27,6 @@ const isHovered = ref(false);
 
 <style scoped>
 button {
-    padding: 5px 10px;
     font-size: var(--font-size-lg);
     color: var(--text-color);
     background-color: transparent;
@@ -43,6 +34,12 @@ button {
     border-radius: var(--border-radius-md);
     cursor: pointer;
     transition: background-color 0.3s ease;
+    display: flex;
     align-items: center;
+    text-align: center;
+}
+
+button:hover {
+    background-color: var(--accent-background-color);
 }
 </style>

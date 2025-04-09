@@ -12,9 +12,9 @@
 
     /* Информирующие цвета*/
     --success-color: #28a745;
+    --info-color: #17a2b8;
     --warning-color: #ffc107;
     --error-color: #dc3545;
-    --info-color: #17a2b8;
 
     /* Радиус границ */
     --border-radius-sm: 0.25em;

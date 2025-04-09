@@ -7,10 +7,12 @@ import SearchIcon from '@/components/icons/SearchIcon.vue';
 import BaseButton from '@/components/base/BaseButton.vue';
 import BaseInput from '@/components/base/BaseInput.vue';
 import CalendarIcon from '@/components/icons/CalendarIcon.vue';
-import LowPriorityIcon from '@/components/icons/LowPriorityIcon.vue';
-import MediumPriorityIcon from '@/components/icons/MediumPriorityIcon.vue';
-import HighPriorityIcon from '@/components/icons/HighPriorityIcon.vue';
+import WaitIcon from '@/components/icons/WaitIcon.vue';
+import WorkIcon from '@/components/icons/WorkIcon.vue';
+import DoneIcon from '@/components/icons/DoneIcon.vue';
+import CloseIcon from '@/components/icons/CloseIcon.vue';
 import LabelIcon from '@/components/icons/LabelIcon.vue';
+import AddIcon from '@/components/icons/AddIcon.vue';
 
 const props = defineProps({
     id: {
@@ -66,35 +68,50 @@ watch(
 
 <template>
     <div id="stacks-view">
-        <div class="control-panel">
-            <div class="contols-left">
-                <base-input class="search" type="text" placeholder="Поиск">
+        <div class="stacks-control-panel">
+            <div class="stacks-contols-left">
+                <base-input class="stacks-search" type="text" placeholder="Поиск">
                     <search-icon size="20px" />
                 </base-input>
             </div>
-            <div class="controls-right">
-                <base-button>+ Новая стопка</base-button>
+            <div class="stacks-controls-right">
+                <base-button style="padding: 5px 10px;">
+                    <add-icon size="20px" />
+                    Новая стопка
+                </base-button>
             </div>
         </div>
         <div class="stacks">
             <div v-for="stack in stacks" :key="stack.id" class="stack">
-                <div class="title">
+                <div class="stack-title">
                     {{ stack.name }}
+                    <base-button style="padding: 5px;">
+                        <add-icon size="20px"/>
+                    </base-button>
                 </div>
                 <div v-if="stack.tasks.length !== 0" class="tasks">
-                    <div v-for="task in stack.tasks" :key="task.id" class="task-card" @click="openTaskDetail(task.id)">
-                        <div class="title">
+                    <div v-for="task in stack.tasks" 
+                         :key="task.id" 
+                         class="task-card"
+                         :class="{
+                            low: task.priority.name == 'Не важно',
+                            medium: task.priority.name == 'Важно',
+                            high: task.priority.name == 'Срочно'
+                         }"
+                         @click="openTaskDetail(task.id)">
+                        <div class="task-card-title">
                             {{ task.title }}
                         </div>
                         <div class="date-end">
                             <calendar-icon size="20px" />
                             {{ parseDate(task.date_end) }}
                         </div>
-                        <div class="priority">
-                            <low-priority-icon v-if="task.priority.name === 'Не важно'" size="20px" />
-                            <medium-priority-icon v-if="task.priority.name === 'Важно'" size="20px" />
-                            <high-priority-icon v-if="task.priority.name === 'Срочно'" size="20px" />
-                            {{ task.priority.name }}
+                        <div class="status">
+                            <wait-icon v-if="task.status.name === 'В ожидании'" size="20px" />
+                            <work-icon v-if="task.status.name === 'В работе'" size="20px" />
+                            <done-icon v-if="task.status.name === 'Готово'" size="20px" />
+                            <close-icon v-if="task.status.name === 'Закрыто'" size="20px" />
+                            {{ task.status.name }}
                         </div>
                         <div class="labels-container">
                             <div class="label" v-for="label in task.labels" :key="label">
@@ -104,15 +121,14 @@ watch(
                         </div>
                     </div>
                 </div>
-                <base-button>
-                    Добавить задачу
-                </base-button>
             </div>
         </div>
     </div>
-    <div id="task-view">
-
-    </div>
+    <!--
+        <div id="task-view">
+    
+        </div>
+    -->
 </template>
 
 <style scoped>
@@ -122,9 +138,10 @@ watch(
     width: 100%;
 }
 
-.control-panel {
+.stacks-control-panel {
     padding: 0 10px;
     height: 50px;
+    min-height: 50px;
     background-color: var(--background-color);
     border-bottom: 1px solid var(--border-color);
     display: flex;
@@ -132,17 +149,26 @@ watch(
     align-items: center;
 }
 
-.controls {
+.stacks-controls {
     display: flex;
     justify-content: space-between;
     align-items: center;
+}
+
+.stacks-search {
+    flex: 1;
+    padding: 5px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    background-color: var(--accent-background-color);
+    color: var(--text-color);
+    margin-right: 10px;
 }
 
 .stacks {
     display: flex;
     flex-direction: row;
     overflow: auto;
-    padding: 10px;
 }
 
 .stack {
@@ -155,29 +181,10 @@ watch(
     gap: 10px;
 }
 
-
-.search {
-    flex: 1;
-    padding: 5px 10px;
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius-md);
-    background-color: var(--accent-background-color);
-    color: var(--text-color);
-    margin-right: 10px;
-}
-
-.new-task {
-    padding: 5px 10px;
-    border: none;
-    border-radius: var(--border-radius-md);
-    background-color: var(--primary-color);
-    color: var(--text-color);
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-.new-task:hover {
-    background-color: var(--secondary-color);
+.stack-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .tasks {
@@ -187,7 +194,7 @@ watch(
 }
 
 .task-card {
-    padding: 20px;
+    padding: 10px;
     height: fit-content;
     background-color: var(--accent-background-color);
     border: 1px solid var(--border-color);
@@ -197,11 +204,19 @@ watch(
     gap: 10px;
 }
 
-.title {
-    cursor: pointer;
+.low {
+    border: 1px solid var(--info-color);
 }
 
-.author, .date-end, .priority, .label {
+.medium {
+    border: 1px solid var(--warning-color);
+}
+
+.high {
+    border: 1px solid var(--error-color);
+}
+
+.author, .date-end, .status, .label {
     display: flex;
     gap: 5px;
     align-items: center;

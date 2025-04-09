@@ -5,9 +5,12 @@ class Token(BaseModel):
     """
     Схема для отображения токена.
     
-    Атрибуты:
-        access_token (str): Токен.
-        token_type (str): Тип токена.
+    ```json
+    {
+        "access_token": "string", # Токен доступа
+        "token_type": "string"    # Тип токена
+    }
+    ```
     """
     
     access_token: str

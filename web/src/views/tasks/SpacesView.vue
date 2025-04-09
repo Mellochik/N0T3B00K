@@ -3,6 +3,9 @@ import { ref, onMounted, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { getRequest } from '@/api/requests.js';
 
+import BaseButton from '@/components/base/BaseButton.vue';
+import AddIcon from '@/components/icons/AddIcon.vue';
+
 const spaces = ref([]);
 const route = useRoute();
 const router = useRouter();
@@ -30,12 +33,10 @@ onMounted(() => {
 <template>
     <div id="spaces-view">
         <div class="control-panel">
-            <div class="title">
-                Рабочие пространства
-            </div>
-            <div class="controls">
-
-            </div>
+            Рабочие пространства
+            <base-button style="padding: 5px;">
+                <add-icon size="20px" />
+            </base-button>
         </div>
         <div class="spaces">
             <div 
@@ -60,20 +61,13 @@ onMounted(() => {
 }
 
 .control-panel {
+    padding: 0px 10px;
     height: 50px;
     background-color: var(--background-color);
     border-bottom: 1px solid var(--border-color);
     display: flex;
     justify-content: space-between;
     align-items: center;
-}
-
-.title {
-    margin-left: 10px;
-    padding: 10px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 .spaces {
@@ -90,6 +84,9 @@ onMounted(() => {
     padding: 10px;
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius-md);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     cursor: pointer;
     transition: background-color 0.3s ease;
 }

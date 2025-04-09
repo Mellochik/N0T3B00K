@@ -6,7 +6,7 @@ from api.core.security import create_access_token, get_current_user, \
                               authenticate_user, OAuth2PasswordRequestForm
 from api.core.exceptions import BadRequestException, InternalServerErrorException, UnauthorizedException
 from api.repositories.users import UserDAO
-from api.schemas.users import UserSignIn, UserSignUp, User
+from api.schemas.users import UserRegister, User
 from api.schemas.token import Token
 from api.utils.hash import get_password_hash
 
@@ -21,11 +21,11 @@ router = APIRouter(
     summary="Регистрация пользователя",
     response_class=JSONResponse,
 )
-async def sign_up_user(new_user: UserSignUp) -> JSONResponse:
-    """Регистрация пользователя."""
+async def sign_up_user(new_user: UserRegister) -> JSONResponse:
+    """Регистрация пользователя"""
     
     try:
-        existing_user = await UserDAO.find_one_or_none(login=new_user.login)
+        existing_user = await UserDAO.find_one_or_none(username=new_user.username)
         if existing_user:
             raise BadRequestException
         
@@ -51,12 +51,12 @@ async def sign_up_user(new_user: UserSignUp) -> JSONResponse:
     response_model=Token,
 )
 async def sign_in_user(user: Annotated[OAuth2PasswordRequestForm, Depends()]) -> Token:
-    """Авторизация пользователя."""
+    """Авторизация пользователя"""
     
     existing_user = await authenticate_user(user.username, user.password)
     if existing_user is False:
         raise UnauthorizedException(detail="Неверный логин или пароль")
-    access_token = create_access_token(data={"sub": str(existing_user.login)})
+    access_token = create_access_token(data={"sub": str(existing_user.username)})
     
     return Token(access_token=access_token, token_type="bearer")
 

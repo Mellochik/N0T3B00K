@@ -11,7 +11,7 @@ class User(Base):
     
     Атрибуты:
         id (int): Первичный ключ пользователя, автоинкремент.
-        login (str): Логин пользователя, уникальный, не может быть null.
+        username (str): Логин пользователя, уникальный, не может быть null.
         password (str): Пароль пользователя, не может быть null.
         email (str): Email пользователя, уникальный, не может быть null.
         name (str): Имя пользователя, не может быть null.
@@ -28,22 +28,19 @@ class User(Base):
     }
 
 
-    id:           Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    login:        Mapped[str] = mapped_column(unique=True, nullable=False)
-    password:     Mapped[str] = mapped_column(nullable=False)
-    email:        Mapped[str] = mapped_column(unique=True, nullable=False)
-    first_name:   Mapped[str] = mapped_column(nullable=False)
-    last_name:    Mapped[str] = mapped_column(nullable=False)
-    created_at:   Mapped[datetime.date] = mapped_column(default=datetime.date.today)
+    id:           Mapped[int] = mapped_column(primary_key=True, autoincrement=True, comment="Идентификатор пользователя")
+    username:     Mapped[str] = mapped_column(unique=True, nullable=False, comment="Логин пользователя")
+    password:     Mapped[str] = mapped_column(nullable=False, comment="Пароль пользователя")
+    email:        Mapped[str] = mapped_column(unique=True, nullable=False, comment="Email пользователя")
+    first_name:   Mapped[str] = mapped_column(nullable=False, comment="Имя пользователя")
+    last_name:    Mapped[str] = mapped_column(nullable=False, comment="Фамилия пользователя")
+    created_at:   Mapped[datetime.date] = mapped_column(default=datetime.date.today, comment="Дата создания пользователя")
     
-    is_active:    Mapped[bool] = mapped_column(default=True, server_default='false', nullable=False)
-    is_superuser: Mapped[bool] = mapped_column(default=False, server_default='false', nullable=False)
+    is_superuser: Mapped[bool] = mapped_column(default=False, server_default='false', nullable=False, comment="Флаг суперпользователя")
     
     
     def __str__(self):
-        return f"User(id={self.id}, login={self.login}, email={self.email}, " \
-               f"name={self.first_name}, surname={self.last_name})"
+        return f"User(id={self.id}, username={self.username}, email={self.email})"
 
     def __repr__(self):
-        return f"<User(id={self.id}, login={self.login}, email={self.email}, " \
-               f"name={self.first_name}, surname={self.last_name})>"
+        return f"<User(id={self.id}, username={self.username}, email={self.email})>"

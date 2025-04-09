@@ -7,166 +7,89 @@ from api.models.users import User
 import datetime
 
 
-class SpaceUsers(Base):
+class Board(Base):
     """
-    Представляет таблицу пространств и пользователей.
-    
-    Атрибуты:
-        id (int): Первичный ключ ассоциации.
-        space_id (int): Внешний ключ, ссылающийся на пространство.
-        user_id (int): Внешний ключ, ссылающийся на пользователя.
-    """
-    
-    __tablename__ = 'space_users'
-    
-    id:       Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    space_id: Mapped[int] = mapped_column(
-        ForeignKey("tasks.spaces.id", ondelete='CASCADE'),
-        nullable=False
-    )
-    user_id:  Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
-    
-    __table_args__ = (
-        UniqueConstraint('space_id', 'user_id', name='uq_space_user'),
-        {
-            'schema': 'tasks',
-            'comment': 'Таблица для связи пространств и пользователей'
-        }
-    )
-    
-    def __str__(self):
-        return f"SpaceUser(space_id={self.space_id}, user_id={self.user_id})"
-    
-    def __repr__(self):
-        return f"<SpaceUser(space_id={self.space_id}, user_id={self.user_id})>"
-
-
-class Space(Base):
-    """
-    Представляет таблицу пространств.
+    Представляет таблицу досок.
     
     Атрибуты:
         id (int): Первичный ключ пространства, автоинкремент.
-        name (str): Название пространства, не может быть null.
-        owner_id (int): Внешний ключ, ссылающийся на владельца пространства.
+        name (str): Название доски, не может быть null.
     """
     
-    __tablename__ = 'spaces'
+    __tablename__ = 'boards'
 
-    id:       Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    name:     Mapped[str] = mapped_column(String(20), nullable=False)
-    owner_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
+    id:       Mapped[int] = mapped_column(primary_key=True, autoincrement=True, comment="Идентификатор доски")
+    name:     Mapped[str] = mapped_column(nullable=False, comment="Название доски")
+    owner_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False, comment="Идентификатор владельца доски")
     
-    owner:  Mapped[User] = relationship(
-        User, 
-        uselist=False,
-        lazy='selectin'
-    )
-    users:  Mapped[list[User]] = relationship(
-        User, 
-        secondary=SpaceUsers.__table__,
-        lazy='selectin'
-    )
-    stacks: Mapped[list["Stack"]] = relationship(
-        "Stack", 
-        back_populates="space", 
-        cascade="all, delete-orphan", 
+    owner:  Mapped[User] = relationship(lazy='selectin')
+    stacks: Mapped[list['Stack']] = relationship(
+        back_populates='board', 
+        cascade='all, delete-orphan', 
         lazy='selectin'
     )
     
     __table_args__ = {
         'schema': 'tasks',
-        'comment': 'Таблица для хранения пространств'
+        'comment': 'Таблица для хранения досок'
     }
 
     def __str__(self):
-        return f"Space(id={self.id}, name={self.name})"
+        return f'Board(id={self.id}, name={self.name})'
 
     def __repr__(self):
-        return f"<Space(id={self.id}, name={self.name})>"
+        return f'<Board(id={self.id}, name={self.name})>'
     
 
 class Stack(Base):
     """
-    Представляет таблицу колонок.
+    Представляет таблицу стопок задач.
     
     Атрибуты:
         id (int): Первичный ключ колонки, автоинкремент.
         name (str): Название колонки, не может быть null.
-        space_id (int): Внешний ключ, ссылающийся на пространство.
+        board_id (int): Внешний ключ, ссылающийся на доску.
     """
     
     __tablename__ = 'stacks'
     
-    id:       Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    name:     Mapped[str] = mapped_column(String(20), nullable=False)
-    space_id: Mapped[int] = mapped_column(ForeignKey(Space.id, ondelete="CASCADE"), 
-                                          nullable=False)
+    id:       Mapped[int] = mapped_column(primary_key=True, autoincrement=True, comment="Идентификатор стопки")
+    name:     Mapped[str] = mapped_column(nullable=False, comment="Название стопки")
+    board_id: Mapped[int] = mapped_column(ForeignKey('tasks.boards.id', ondelete='CASCADE'), 
+                                          nullable=False, comment="Идентификатор доски")
     
-    space: Mapped["Space"] = relationship("Space", back_populates="stacks", lazy='selectin')
-    tasks: Mapped[list["Task"]] = relationship(
-        "Task", 
-        back_populates="stack", 
-        cascade="all, delete-orphan", 
-        lazy='selectin', 
-        sync_backref=False
+    board: Mapped['Board'] = relationship('Board', back_populates='stacks', lazy='selectin')
+    tasks: Mapped[list['Task']] = relationship(
+        back_populates='stack', 
+        cascade='all, delete-orphan', 
+        lazy='selectin'
     )
     
     __table_args__ = {
         'schema': 'tasks',
-        'comment': 'Таблица для хранения колонок'
+        'comment': 'Таблица для хранения стопок задач'
     }
     
     def __str__(self):
-        return f"Column(id={self.id}, name={self.name}, space_id={self.space_id})"
+        return f'Stack(id={self.id}, name={self.name}, board_id={self.board_id})'
     
     def __repr__(self):
-        return f"<Column(id={self.id}, name={self.name}, space_id={self.space_id})>"
-
-
-class Status(Base):
-    """
-    Представляет таблицу статусов задач.
-    
-    Атрибуты:
-        id (int): Первичный ключ статуса, автоинкремент.
-        name (str): Название статуса, не может быть null.
-    """
-    
-    __tablename__ = "statuses"
-
-    id:   Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String(10), nullable=False, unique=True)
-
-    tasks: Mapped[list["Task"]] = relationship("Task", back_populates="status", lazy='selectin')
-    
-    __table_args__ = {
-        'schema': 'tasks',
-        'comment': 'Таблица для хранения статусов задач'
-    }
-    
-    def __str__(self):
-        return f"Status(id={self.id}, name={self.name})"
-    
-    def __repr__(self):
-        return f"<Status(id={self.id}, name={self.name})>"
+        return f'<Stack(id={self.id}, name={self.name}, board_id={self.board_id})>'
 
 
 class Priority(Base):
-    """
+    '''
     Представляет таблицу приоритетов задач.
     
     Атрибуты:
         id (int): Первичный ключ приоритета, автоинкремент.
         name (str): Название приоритета, не может быть null.
-    """
+    '''
     
-    __tablename__ = "priorities"
+    __tablename__ = 'priorities'
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String(10), nullable=False, unique=True)
-
-    tasks: Mapped[list["Task"]] = relationship("Task", back_populates="priority", lazy='selectin')
+    id:   Mapped[int] = mapped_column(primary_key=True, autoincrement=True, comment="Идентификатор приоритета")
+    name: Mapped[str] = mapped_column(nullable=False, unique=True, comment="Название приоритета")
     
     __table_args__ = {
         'schema': 'tasks',
@@ -174,62 +97,58 @@ class Priority(Base):
     }
     
     def __str__(self):
-        return f"Priority(id={self.id}, name={self.name})"
+        return f'Priority(id={self.id}, name={self.name})'
     
     def __repr__(self):
-        return f"<Priority(id={self.id}, name={self.name})>"
+        return f'<Priority(id={self.id}, name={self.name})>'
     
 
-class TaskLabels(Base):
-    """
-    Представляет таблицу пространств и пользователей.
+class TaskTags(Base):
+    '''
+    Представляет таблицу задач и меток.
     
     Атрибуты:
         id (int): Первичный ключ аcсоциации.
-        task_id (int): Внешний ключ, ссылающийся на пространство.
-        user_id (int): Внешний ключ, ссылающийся на пользователя.
-    """
+        task_id (int): Внешний ключ, ссылающийся на задачу.
+        tag_id (int): Внешний ключ, ссылающийся на метку.
+    '''
     
     __tablename__ = 'task_labels'
     
-    id:       Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    task_id:  Mapped[int] = mapped_column(ForeignKey("tasks.tasks.id", ondelete='CASCADE'))
-    label_id: Mapped[int] = mapped_column(ForeignKey("tasks.labels.id", ondelete='CASCADE'))
+    id:      Mapped[int] = mapped_column(primary_key=True, autoincrement=True, comment="Идентификатор связи")
+    task_id: Mapped[int] = mapped_column(ForeignKey('tasks.tasks.id', ondelete='CASCADE'), comment="Идентификатор задачи")
+    tag_id:  Mapped[int] = mapped_column(ForeignKey('tasks.labels.id', ondelete='CASCADE'), comment="Идентификатор метки")
     
     __table_args__ = (
-        UniqueConstraint('label_id', 'task_id', name='uq_task_labels'),{
+        UniqueConstraint('task_id', 'tag_id', name='uq_task_tags'),{
             'schema': 'tasks',
-            'comment': 'Таблица для связи пространств и пользователей'
+            'comment': 'Таблица для связи задач и меток'
         }
     )
     
     def __str__(self):
-        return f"SpaceUser(space_id={self.space_id}, user_id={self.user_id})"
+        return f'TaskTags(task_id={self.task_id}, tag_id={self.tag_id})'
     
     def __repr__(self):
-        return f"<SpaceUser(space_id={self.space_id}, user_id={self.user_id})>"
+        return f'<TaskTags(task_id={self.task_id}, tag_id={self.tag_id})>'
 
 
-class Label(Base):
-    """
+class Tag(Base):
+    '''
     Представляет таблицу меток задач.
     
     Атрибуты:
         id (int): Первичный ключ метки, автоинкремент.
         name (str): Название метки, не может быть null.
-    """
+        board_id (int): Внешний ключ, ссылающийся на доску.
+    '''
     
-    __tablename__ = "labels"
+    __tablename__ = 'tags'
     
-    id:   Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
-
-    tasks: Mapped[list["Task"]] = relationship(
-        "Task", 
-        secondary=TaskLabels.__table__, 
-        back_populates="labels", 
-        lazy='selectin'
-    )
+    id:       Mapped[int] = mapped_column(primary_key=True, autoincrement=True, comment="Идентификатор метки")
+    name:     Mapped[str] = mapped_column(nullable=False, unique=True, comment="Название метки")
+    board_id: Mapped[int] = mapped_column(ForeignKey('tasks.boards.id', ondelete='CASCADE'),
+                                          nullable=False, comment="Идентификатор доски")
     
     __table_args__ = {
         'schema': 'tasks',
@@ -237,58 +156,60 @@ class Label(Base):
     }
     
     def __str__(self):
-        return f"Label(id={self.id}, name={self.name})"
+        return f'Tag(id={self.id}, name={self.name})'
     
     def __repr__(self):
-        return f"<Label(id={self.id}, name={self.name})>"
+        return f'<Tag(id={self.id}, name={self.name})>'
     
 
 class Task(Base):
-    """
+    '''
     Представляет таблицу задач.
     
     Атрибуты:
         id (int): Первичный ключ задачи, автоинкремент.
-        stack_id (int): Внешний ключ, ссылающийся на колонку.
-        author_id (int): Внешний ключ, ссылающийся на автора задачи.
+        stack_id (int): Внешний ключ, ссылающийся на стопку.
         title (str): Название задачи, не может быть null.
-        description (str): Описание задачи.
         create_date (datetime.date): Дата создания задачи, по умолчанию - сегодняшняя дата.
         date_end (datetime.date): Дата завершения задачи.
         status_id (int): Внешний ключ, ссылающийся на статус задачи.
         priority_id (int): Внешний ключ, ссылающийся на приоритет задачи.
-    """
+        description (str): Описание задачи.
+        solution (str): Решение задачи.
+        archived (bool): Флаг, указывающий на архивирование задачи.
+    '''
     
-    __tablename__ = "tasks"
+    __tablename__ = 'tasks'
 
-    id:          Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    stack_id:   Mapped[int] = mapped_column(ForeignKey(Stack.id, ondelete="CASCADE"), 
-                                            nullable=False)
-    author_id:   Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
-    title:       Mapped[str] = mapped_column(String(20), nullable=False)
-    description: Mapped[str] = mapped_column(nullable=True)
-    create_date: Mapped[datetime.date] = mapped_column(nullable=False, 
-                                                       default=datetime.date.today)
-    date_end:    Mapped[datetime.date] = mapped_column(nullable=True)
-    status_id:   Mapped[int] = mapped_column(ForeignKey(Status.id), nullable=False)
-    priority_id: Mapped[int] = mapped_column(ForeignKey(Priority.id), nullable=False)
+    id:          Mapped[int] = mapped_column(primary_key=True, autoincrement=True, comment="Идентификатор задачи")
+    stack_id:    Mapped[int] = mapped_column(ForeignKey(Stack.id, ondelete="CASCADE"), 
+                                             nullable=False, comment="Идентификатор стопки")
+    title:       Mapped[str] = mapped_column(nullable=False, comment="Название задачи")
+    create_date: Mapped[datetime.datetime] = mapped_column(nullable=False, 
+                                                           default=datetime.datetime.today, comment="Дата создания задачи")
+    date_end:    Mapped[datetime.datetime] = mapped_column(nullable=True, comment="Дата завершения задачи")
+    priority_id: Mapped[int] = mapped_column(ForeignKey('tasks.priorities.id'), nullable=False, comment="Идентификатор приоритета задачи")
+    description: Mapped[str] = mapped_column(nullable=True, comment="Описание задачи")
+    solution:    Mapped[str] = mapped_column(nullable=True, comment="Решение задачи")
+    archived:    Mapped[bool] = mapped_column(nullable=False, default=False, comment="Флаг архивирования задачи")
 
-    stack = relationship("Stack", back_populates="tasks", lazy='selectin')
-    author = relationship(User, lazy='selectin')
-    status = relationship("Status", back_populates="tasks", lazy='selectin')
-    priority = relationship("Priority", back_populates="tasks", lazy='selectin')
-    labels = relationship("Label", secondary=TaskLabels.__table__, 
-                          back_populates="tasks", lazy='selectin')
+    stack:    Mapped['Stack'] = relationship(back_populates='tasks', lazy='selectin')
+    priority: Mapped['Priority'] = relationship(lazy='selectin')
+    tags:     Mapped[list['Tag']] = relationship(secondary='tasks.task_labels', lazy='selectin')
     
     __table_args__ = {
         'schema': 'tasks',
         'comment': 'Таблица для хранения задач'
     }
     
+    @property
+    def has_solution(self) -> bool:
+        return bool(self.solution)
+    
     def __str__(self):
-        return (f"Task(id={self.id}, stack_id={self.stack_id}, author_id={self.author_id}, title={self.title}, "
-                f"create_date={self.create_date}, date_end={self.date_end}, status_id={self.status_id}, priority_id={self.priority_id})")
+        return (f'Task(id={self.id}, stack_id={self.stack_id}, title={self.title}, create_date={self.create_date}, '
+                f'date_end={self.date_end}, status_id={self.status_id}, priority_id={self.priority_id})')
     
     def __repr__(self):
-        return (f"<Task(id={self.id}, stack_id={self.stack_id}, author_id={self.author_id}, title={self.title}, " 
-                f"create_date={self.create_date}, date_end={self.date_end}, status_id={self.status_id}, priority_id={self.priority_id})>")
+        return (f'<Task(id={self.id}, stack_id={self.stack_id}, title={self.title}, create_date={self.create_date}, ' 
+                f'date_end={self.date_end}, status_id={self.status_id}, priority_id={self.priority_id})>')

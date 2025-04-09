@@ -1,5 +1,3 @@
-from sqlalchemy import select
-
 from api.core.dao import BaseDAO
 from api.models.users import User
 

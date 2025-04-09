@@ -3,51 +3,45 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field
 import datetime
 
 
-class UserSignUp(BaseModel):
+class UserRegister(BaseModel):
     """
-    Представляет схему создания пользователя.
+    Схема для создания пользователя.
     
-    Атрибуты:
-        login (str): Логин пользователя.
-        password (str): Пароль пользователя.
-        email (EmailStr): Email пользователя.
-        name (str): Имя пользователя.
-        surname (str): Фамилия пользователя.
-        created_at (date): Дата создания пользователя, по умолчанию - сегодня.
-        is_active (bool): Флаг активного пользователя, по умолчанию - False.
+    ```json
+    {
+        "username": "string",      # Логин пользователя
+        "password": "string",      # Пароль пользователя
+        "email": "string",         # Email пользователя
+        "first_name": "string",    # Имя пользователя
+        "last_name": "string",     # Фамилия пользователя
+        "created_at": "date"       # Дата создания пользователя (по умолчанию - сегодня)
+    }
+    ```
     """
     
-    login: str
+    username: str
     password: str
     email: EmailStr
     first_name: str
     last_name: str
     created_at: datetime.date = datetime.date.today()
-    is_active: bool = True
-    
-
-class UserSignIn(BaseModel):
-    """
-    Представляет схему входа пользователя.
-    
-    Атрибуты:
-        login (str): Логин пользователя.
-        password (str): Пароль пользователя.
-    """
-    
-    login: str
-    password: str
     
     
 class User(BaseModel):
     """
-    Представляет схему чтения пользователя.
+    Схема для отображения пользователя.
     
-    Атрибуты:
-        id (int): Первичный ключ пользователя, автоинкремент.
+    ```json
+    {
+        "username": "string",      # Логин пользователя
+        "email": "string",         # Email пользователя
+        "first_name": "string",    # Имя пользователя
+        "last_name": "string"      # Фамилия пользователя
+    }
+    ```
     """
     
-    login: str
+    username: str
     email: str
     first_name: str
     last_name: str
