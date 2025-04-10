@@ -35,6 +35,7 @@ defineEmits(['update:modelValue']);
 }
 
 input {
+    padding: 10px;
     color: var(--text-color);
     font-size: var(--font-size-lg);
     background-color: transparent;

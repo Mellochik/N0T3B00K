@@ -23,28 +23,40 @@ watch(route, updateHeaderTitle, { immediate: true });
 </script>
 
 <template>
-    <header>{{ headerTitle }}</header>
-    <nav>
-        <div class="menu">
-            <router-link :to="{ name: 'Home' }">
-                <home-icon size="40px" />
-            </router-link>
-            <router-link :to="{ name: 'TasksWorkspaces' }">
-                <task-icon size="40px" :color="`var(--text-color)`"/>
-            </router-link>
-        </div>
-        <div class="profile">
-            <router-link :to="{ name: 'Profile' }">
-                <profile-icon size="40px" />
-            </router-link>
-        </div>
-    </nav>
-    <main>
-        <router-view />
-    </main>
+    <div id="main-view">
+        <header>{{ headerTitle }}</header>
+        <nav>
+            <div class="menu">
+                <router-link :to="{ name: 'Home' }">
+                    <home-icon size="40px" />
+                </router-link>
+                <router-link :to="{ name: 'TasksWorkspaces' }">
+                    <task-icon size="40px" :color="`var(--text-color)`"/>
+                </router-link>
+            </div>
+            <div class="profile">
+                <router-link :to="{ name: 'Profile' }">
+                    <profile-icon size="40px" />
+                </router-link>
+            </div>
+        </nav>
+        <main>
+            <router-view />
+        </main>
+    </div>
 </template>
 
 <style scoped>
+#main-view {
+    height: 100%;
+    display: grid;
+    grid-template-areas:
+        "h h"
+        "n m";
+    grid-template-columns: 87.5px 1fr;
+    grid-template-rows: 50px 1fr;
+}
+
 nav {
     grid-area: n;
     padding: 0px 10px;
