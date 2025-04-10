@@ -54,13 +54,13 @@ const handleSubmit = async () => {
             <h1>Вход</h1>
             <div class="form-group">
                 <label for="login">Логин</label>
-                <BaseInput id="login" v-model="username" required />
+                <base-input id="login" v-model="username" required />
             </div>
             <div class="form-group">
                 <label for="password">Пароль</label>
-                <BaseInput id="password" type="password" v-model="password" required />
+                <base-input id="password" type="password" v-model="password" required />
             </div>
-            <BaseButton type="submit">Войти</BaseButton>
+            <base-button type="submit">Войти</base-button>
             <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
             <p class="register-link">
                 Нет аккаунта? <BaseLink href="/register">Зарегистрироваться</BaseLink>
